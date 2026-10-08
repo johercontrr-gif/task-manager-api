@@ -62,6 +62,26 @@ Contexto: la herramienta preguntó si yo ejecutaba los commits (opción 1) o ell
 - `git push -u origin main` → `2a6fa14..423b790  main -> main`.
 - Como el rebase reescribe los hashes, los hashes de la bitácora se copiaron después del push.
 
+### Paso 3 · feat: add singleton config loader with env validation
+**Herramienta:** Antigravity.
+**Commit:** `94c0774`
+**Prompt:** "sigur"
+Contexto: desarrollo del Paso 3 del plan (clase `Config` Singleton con validación de entorno fail-fast).
+**Acepté:**
+- Clase `Config` con patrón Singleton (`getInstance()`, constructor privado) para evitar lecturas repetidas de `process.env`.
+- Carga de `.env.test` cuando `NODE_ENV=test` y `.env` en cualquier otro caso.
+- Validación fail-fast: si falta alguna variable obligatoria o un número es inválido, lanza un error claro al arrancar.
+- Reglas de seguridad: `JWT_SECRET` exige mínimo 32 caracteres sin valor por defecto; `BCRYPT_SALT_ROUNDS` configurable (12 por defecto, mínimo 4 en pruebas).
+- Archivos `.env.example` y `.env.test.example` versionados; `.env` y `.env.test` ignorados en `.gitignore`.
+- Actualización de `src/server.ts` para usar el puerto dinámico de `Config.getInstance().port`.
+**Cambié/rechacé:** Nada del código generado. Se comprobó que los `.env` reales estén en `.gitignore`.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- Prueba fail-fast sin `.env` → lanzó `Error: Falta la variable de entorno obligatoria: PORT` de inmediato.
+- Carga con `.env` → cargó puerto 3000, base `tasks_db` y clave JWT válida.
+- Carga con `NODE_ENV=test` → cargó `.env.test` con puerto 3001, base `tasks_test_db` y salt 4.
+- `git ls-files` → solo `.env.example` y `.env.test.example` están bajo control de versiones.
+
 ---
 
 ## Retos y soluciones
