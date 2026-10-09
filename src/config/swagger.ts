@@ -57,8 +57,8 @@ const options: swaggerJSDoc.Options = {
             },
             password: {
               type: "string",
-              minLength: 6,
-              maxLength: 100,
+              minLength: 8,
+              maxLength: 72,
               example: "password123",
             },
           },
@@ -74,6 +74,8 @@ const options: swaggerJSDoc.Options = {
             },
             password: {
               type: "string",
+              minLength: 1,
+              maxLength: 72,
               example: "password123",
             },
           },
