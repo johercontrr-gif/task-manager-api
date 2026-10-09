@@ -15,11 +15,13 @@ export class Config {
   private static instance: Config | undefined;
 
   readonly port: number;
+  readonly databaseUrl?: string;
   readonly dbHost: string;
   readonly dbPort: number;
   readonly dbUser: string;
   readonly dbPassword: string;
   readonly dbName: string;
+  readonly dbSsl: boolean;
   readonly jwtSecret: string;
   readonly jwtExpiresIn: string;
   readonly bcryptSaltRounds: number;
@@ -31,12 +33,26 @@ export class Config {
     const isTest = process.env.NODE_ENV === "test";
     dotenv.config({ path: isTest ? ".env.test" : ".env", quiet: true });
 
-    this.port = Config.readNumber("PORT");
-    this.dbHost = Config.readString("DB_HOST");
-    this.dbPort = Config.readNumber("DB_PORT");
-    this.dbUser = Config.readString("DB_USER");
-    this.dbPassword = Config.readString("DB_PASSWORD");
-    this.dbName = Config.readString("DB_NAME");
+    this.port = Config.readNumber("PORT", 3000);
+
+    const rawDbUrl = process.env.DATABASE_URL;
+    if (rawDbUrl) {
+      this.databaseUrl = rawDbUrl;
+      const parsed = new URL(rawDbUrl);
+      this.dbHost = parsed.hostname;
+      this.dbPort = Number(parsed.port) || 5432;
+      this.dbUser = decodeURIComponent(parsed.username);
+      this.dbPassword = decodeURIComponent(parsed.password);
+      this.dbName = parsed.pathname.replace(/^\//, "");
+    } else {
+      this.dbHost = Config.readString("DB_HOST");
+      this.dbPort = Config.readNumber("DB_PORT");
+      this.dbUser = Config.readString("DB_USER");
+      this.dbPassword = Config.readString("DB_PASSWORD");
+      this.dbName = Config.readString("DB_NAME");
+    }
+
+    this.dbSsl = process.env.DB_SSL === "true";
 
     this.jwtSecret = Config.readString("JWT_SECRET");
     if (this.jwtSecret.length < 32) {

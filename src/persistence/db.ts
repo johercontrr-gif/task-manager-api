@@ -18,11 +18,13 @@ export function getPool(): Pool {
   if (!poolInstance) {
     const config = Config.getInstance();
     poolInstance = new Pool({
-      host: config.dbHost,
-      port: config.dbPort,
-      user: config.dbUser,
-      password: config.dbPassword,
-      database: config.dbName,
+      connectionString: config.databaseUrl,
+      host: config.databaseUrl ? undefined : config.dbHost,
+      port: config.databaseUrl ? undefined : config.dbPort,
+      user: config.databaseUrl ? undefined : config.dbUser,
+      password: config.databaseUrl ? undefined : config.dbPassword,
+      database: config.databaseUrl ? undefined : config.dbName,
+      ssl: config.dbSsl ? { rejectUnauthorized: false } : undefined,
     });
   }
   return poolInstance;
