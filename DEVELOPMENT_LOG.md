@@ -355,7 +355,7 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
 
 ### Paso 14 · docs: add readme and development log
 **Herramienta:** Antigravity.
-**Commit:** `c11b995`
+**Commit:** `7f73f45`
 **Prompt:** "PROSIGAMOS"
 **Contexto:** desarrollo del Paso 14 del plan (creación del `README.md` completo con arquitectura, instalación, guía de Swagger y ejemplos con curl; y finalización de `DEVELOPMENT_LOG.md` con retos reales, supervisión de IA y justificación de decisiones de diseño).
 **Acepté:**
