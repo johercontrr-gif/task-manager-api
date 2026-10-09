@@ -257,5 +257,6 @@ curl -X DELETE http://localhost:3000/tasks/1 \
 3. **Defensa contra Timing Attacks**: Comparación dummy en login para evitar discrepancias de tiempo al autenticar correos inexistentes.
 4. **Consultas 100% Parametrizadas**: Inmunidad contra inyecciones SQL mediante marcadores `$1, $2` del driver `pg`.
 5. **Control de Acceso Basado en Propiedad (Ownership)**: Todas las operaciones de lectura y modificación están ligadas a `user_id` obtenido criptográficamente del token.
-6. **Protección de Cabeceras HTTP**: Integración con `helmet` y limitación de tamaño del cuerpo de la petición (`10kb`) para mitigar denegación de servicio (DoS).
+6. **Protección de Cabeceras HTTP**: Integración con `helmet` (CSP estricto en todos los endpoints de la API, relajado exclusivamente en `/api-docs` para permitir Swagger UI interactivo) y limitación de tamaño de cuerpo (`10kb`) para mitigar denegación de servicio (DoS).
 7. **Validación Estricta de Esquemas**: `ajv` con `additionalProperties: false` para bloquear la inyección de campos no autorizados (Mass Assignment).
+8. **Limitación de Tasa (Rate Limiting)**: Middleware `express-rate-limit` aplicado en `/auth/*` con umbrales configurables en `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`) para mitigar ataques de fuerza bruta.

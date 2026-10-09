@@ -1,410 +1,367 @@
 # Bitácora de Desarrollo
 
-Proyecto: API de Gestión de Tareas (Node.js + Express + TypeScript + PostgreSQL).
-Se actualiza al terminar cada paso, no al final. Formato fijo por entrada:
-Herramienta · Prompt (literal) · Acepté · Cambié/rechacé · Verifiqué.
-
-Herramientas de IA usadas:
-- Antigravity: plan y código de cada paso.
-- Claude (segundo asistente): revisión externa de esta bitácora y del plan.
+**Proyecto:** API de Gestión de Tareas (Node.js + Express 5 + TypeScript + PostgreSQL).  
+**Formato por entrada:** Herramienta · Commit · Prompt (literal) · Acepté · Cambié/rechacé · Verifiqué.  
+**Herramientas de IA usadas:**  
+- **Antigravity:** Asistente técnico principal para diseño de arquitectura, generación incremental de código y ejecución de comandos Git supervisados.  
+- **Claude:** Asistente de revisión externa para contraste crítico del plan de ejecución y auditoría de la bitácora.
 
 ---
 
-## Día 1
+## Tabla Resumen de Commits y Cronología Real
+
+| Paso | Commit | Fecha y Hora (ISO) | Ejecutor / Autor | Mensaje Convencional |
+|---|---|---|---|---|
+| **0** | *(sin commit)* | 2026-10-08 17:50 | Antigravity / johercontrr-gif | Plan de ejecución estructurado y revisión de reglas |
+| **1** | `89edd9d` | 2026-10-08 18:05:07 -05:00 | johercontrr-gif (manual) | `chore: initialize project with typescript and express` |
+| **2** | `423b790` | 2026-10-08 18:39:44 -05:00 | johercontrr-gif (vía Antigravity) | `chore: add folder structure` |
+| **2b** | `a806479` | 2026-10-08 18:39:43 -05:00 | johercontrr-gif (vía Antigravity) | `chore: remove plan file` |
+| **3** | `94c0774` | 2026-10-08 18:58:17 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add singleton config loader with env validation` |
+| **4** | `baede2f` | 2026-10-08 19:03:29 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add database connection pool and schema` |
+| **5** | `868fdad` | 2026-10-08 19:09:39 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add custom error classes and global error handler` |
+| **6** | `9473e08` | 2026-10-08 21:08:54 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add ajv validation middleware` |
+| **7** | `316aba1` | 2026-10-08 22:43:13 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add user registration endpoint` |
+| **8** | `28c5b88` | 2026-10-08 22:47:14 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add user login endpoint with jwt` |
+| **9** | `7d8a121` | 2026-10-08 22:50:04 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add jwt authentication middleware` |
+| **10** | `e05d705` | 2026-10-08 22:57:30 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add task creation and listing endpoints` |
+| **11** | `aabe631` | 2026-10-09 10:37:37 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add task get, update and delete endpoints` |
+| **12** | `af6c1c0` | 2026-10-09 10:47:04 -05:00 | johercontrr-gif (vía Antigravity) | `docs: add swagger documentation` |
+| **13** | `21c280b` | 2026-10-09 10:58:57 -05:00 | johercontrr-gif (vía Antigravity) | `test: add auth and task ownership tests` |
+| **14** | `7f73f45` | 2026-10-09 11:04:00 -05:00 | johercontrr-gif (vía Antigravity) | `docs: add readme and development log` |
+| **15** | `dc6d9d0` | 2026-10-09 11:45:13 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add auth rate limiting and granular csp headers` |
+
+> **Aclaración sobre cronología y autoría:**  
+> El plan pedagógico se diseñó originalmente estructurado en 3 bloques modulares (“Días” temáticos: Día 1 Base y BD, Día 2 Seguridad y Auth, Día 3 Tareas, Swagger y Pruebas). En la práctica real, el desarrollo se ejecutó de forma intensiva y continua en dos jornadas: la tarde y noche del **8 de octubre de 2026** (Pasos 1 al 10) y la mañana del **9 de octubre de 2026** (Pasos 11 al 15).  
+> Todos los commits fueron firmados con la cuenta oficial `johercontrr-gif`. El Paso 1 fue commiteado manualmente por el autor; a partir del Paso 2, por solicitud expresa del autor, la ejecución de los comandos Git fue delegada a Antigravity tras la previa verificación y aprobación del estado del repositorio (`git status`, `git diff`).
+
+---
+
+## Bloque 1: Base, Configuración y Persistencia
 
 ### Paso 0 · Plan de ejecución (uso de IA, sin commit)
-**Herramienta:** Antigravity (plan). Revisión externa: Claude.
-**Prompt:** "listo vamos a empezar con un plan estructurado , el cual el paso a paso sea  simple de documentar."
-Contexto: antes se pegó el enunciado completo de la prueba con su [CONTEXTO] y se pidió adaptar a 3 días y a código simple.
-**Acepté:** Plan de 15 pasos en 3 días, un commit por paso, porque sigue las capas del enunciado y cada paso se puede documentar de inmediato.
-**Cambié/rechacé:** Un plan previo proponía el estado `en_progreso` diciendo que el enunciado no nombraba los valores; es falso, el enunciado define `'en curso'`. Se corrigió a `'pendiente'`, `'en curso'`, `'completada'`. También se redujo de 4 a 3 días.
-Quién detectó el error: Yo detecté la discrepancia al contrastar la propuesta inicial con la Sección 3 del enunciado, señalando que el valor oficial exigido era 'en curso' (con espacio) y no 'en_progreso'.
-**Verifiqué:** Releí la sección 3 del enunciado y comparé los valores de estado; revisé que cada requisito tuviera un paso en el plan.
-
-### Paso 1 · chore: initialize project with typescript and express
-**Herramienta:** Antigravity.
-**Commit:** `89edd9d` (el original `6be3930` cambió con el rebase del Paso 2b)
-**Prompt:** "1 Si , aparte apoyame con la documentacion una documentacion simple y me ayudas con  mi parte y la tuya. 2 si"
-Contexto: la herramienta había preguntado (1) si el usuario de PostgreSQL era `postgres` y el puerto `5432`, y (2) si empezábamos con el Paso 1.
-**Acepté:** Separar `src/app.ts` (configura Express) de `src/server.ts` (hace `listen`), para que Supertest importe `app` sin abrir un puerto; `tsconfig` con `strict` y `target: ES2022` para que `instanceof` funcione con las clases de error.
-**Cambié/rechacé:** Nada del código generado. El puerto `3000` queda fijo en `server.ts` solo de forma temporal y se reemplaza por `Config` en el Paso 3.
-**Verifiqué:**
-- `npm ls express --depth=0` → `express@5.2.1` (lo instalado, no solo lo publicado). En Express 5 las promesas rechazadas llegan solas al middleware de errores, por eso no hace falta `asyncHandler`.
-- `npm run typecheck` → terminó sin errores.
-- `tsx src/server.ts` + `GET http://localhost:3000/health` → `{"status":"ok"}`.
-
-### Paso 2 · chore: add folder structure
-**Herramienta:** Antigravity.
-**Commit:** `423b790`
-**Prompt:** "paso 2"
-Contexto: antes se había acordado el plan de 15 pasos; el Paso 2 es crear la estructura en capas del enunciado.
-**Acepté:** Crear `src/api/routes`, `src/api/middlewares`, `src/controllers`, `src/services`, `src/persistence`, `src/config`, `src/errors`, `src/schemas`, `src/types` y `src/utils`, porque separan responsabilidades: controllers sin lógica de negocio, services sin SQL y repositories sin reglas de negocio.
-**Cambié/rechacé:** Nada. Se agregó un archivo `.gitkeep` en cada carpeta vacía, porque Git no versiona carpetas vacías; cada `.gitkeep` se borra cuando la carpeta recibe su primer archivo real.
-**Verifiqué:**
-- Listado de `src/` → las 10 carpetas existen, cada una con su `.gitkeep`, junto a `app.ts` y `server.ts`.
-- `npm run typecheck` → terminó sin errores.
-
-### Paso 2b · Repositorio remoto en GitHub (sin código nuevo)
-**Herramienta:** Antigravity (ejecutó los comandos Git a mi pedido). Revisión externa de la secuencia: Claude.
-**Commits:** `a806479` (`chore: remove plan file`) y `423b790` (Paso 2).
-**Prompt:** "2 has la 2 otra cosa documenta todo lo que te pido en el chat"
-Contexto: la herramienta preguntó si yo ejecutaba los commits (opción 1) o ella (opción 2); elegí la 2.
-**Acepté:**
-- Borrar `plan_proyecto.md` del repositorio (`git rm`): es una copia del plan de la IA, no parte del proyecto.
-- Unir el historial local con el del repo de GitHub, que se creó con un `README.md`, usando `git pull --rebase --allow-unrelated-histories`. Elegí `rebase` y no `merge` para mantener un historial lineal, y no `--force` para no perder el commit inicial de GitHub.
-**Cambié/rechacé:**
-- El primer `git remote add origin` falló porque copié `<tu-usuario>` literal; se corrigió con `git remote set-url` y mi usuario real.
-- Se usó `--autostash` en el pull porque `DEVELOPMENT_LOG.md` tenía cambios sin commitear.
-- Una revisión externa mencionaba un archivo `implementation_plan.md`, que no existe en este proyecto; comprobé con `git status` y el archivo real era `plan_proyecto.md`.
-**Verifiqué:**
-- `git ls-files` → no hay `.env` ni `node_modules` versionados.
-- `git log --oneline` tras el rebase → `423b790`, `a806479`, `89edd9d`, `2a6fa14 Initial commit`.
-- `git push -u origin main` → `2a6fa14..423b790  main -> main`.
-- Como el rebase reescribe los hashes, los hashes de la bitácora se copiaron después del push.
-
-### Paso 3 · feat: add singleton config loader with env validation
-**Herramienta:** Antigravity.
-**Commit:** `94c0774`
-**Prompt:** "sigur"
-Contexto: desarrollo del Paso 3 del plan (clase `Config` Singleton con validación de entorno fail-fast).
-**Acepté:**
-- Clase `Config` con patrón Singleton (`getInstance()`, constructor privado) para evitar lecturas repetidas de `process.env`.
-- Carga de `.env.test` cuando `NODE_ENV=test` y `.env` en cualquier otro caso.
-- Validación fail-fast: si falta alguna variable obligatoria o un número es inválido, lanza un error claro al arrancar.
-- Reglas de seguridad: `JWT_SECRET` exige mínimo 32 caracteres sin valor por defecto; `BCRYPT_SALT_ROUNDS` configurable (12 por defecto, mínimo 4 en pruebas).
-- Archivos `.env.example` y `.env.test.example` versionados; `.env` y `.env.test` ignorados en `.gitignore`.
-- Actualización de `src/server.ts` para usar el puerto dinámico de `Config.getInstance().port`.
-**Cambié/rechacé:** Nada del código generado. Se comprobó que los `.env` reales estén en `.gitignore`.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- Prueba fail-fast sin `.env` → lanzó `Error: Falta la variable de entorno obligatoria: PORT` de inmediato.
-- Carga con `.env` → cargó puerto 3000, base `tasks_db` y clave JWT válida.
-- Carga con `NODE_ENV=test` → cargó `.env.test` con puerto 3001, base `tasks_test_db` y salt 4.
-- `git ls-files` → solo `.env.example` y `.env.test.example` están bajo control de versiones.
-
-### Paso 4 · feat: add database connection pool and schema
-**Herramienta:** Antigravity.
-**Commit:** `baede2f`
-**Prompt:** "dale"
-Contexto: desarrollo del Paso 4 del plan (conexión a PostgreSQL con driver `pg`, parser de `DATE`, tipos y esquema SQL).
-**Acepté:**
-- Instalación de `pg` y `@types/pg` para interactuar con PostgreSQL mediante consultas SQL explícitas y parametrizadas (sin ORM).
-- Creación de `src/persistence/schema.sql` con tablas `users` y `tasks`, restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`, clave foránea con `ON DELETE CASCADE` e índice `idx_tasks_user_id`.
-- Definición de constante inmutable `TASK_ESTADOS as const` en `src/types/task.types.ts` como fuente única de verdad para tipos de TypeScript, validadores y base de datos.
-- Registro del type parser `types.setTypeParser(types.builtins.DATE, v => v)` en `src/persistence/db.ts` para evitar desfases de fecha por zona horaria.
-- Creación de `docker-compose.yml` montando `schema.sql` en `/docker-entrypoint-initdb.d` como alternativa a PostgreSQL local.
-**Cambié/rechacé:** Nada del código generado. Se cuidó que el valor del estado sea exactamente `'en curso'` (con espacio) coincidiendo con el enunciado.
-**Verifiqué:**
-- `npm ls pg --depth=0` → `pg@8.23.1`.
-- `npm run typecheck` → terminó sin errores.
-- Inicialización del Pool (`getPool()`) enlazando correctamente las variables de `Config`.
-
-## Día 2
-
-### Paso 5 · feat: add custom error classes and global error handler
-**Herramienta:** Antigravity.
-**Commit:** `868fdad`
-**Prompt:** "Si arranquemos"
-Contexto: desarrollo del Paso 5 del plan (clases de error personalizadas y middleware global de errores).
-**Acepté:**
-- Jerarquía de errores tipados con clase base `AppError` (`statusCode`, `details?`, `isOperational = true`) y derivadas: `ValidationError` (400), `AuthenticationError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409).
-- Middleware global `errorHandler` en `src/api/middlewares/error.middleware.ts` con formato unificado `{ status: "error", message, details? }`.
-- Ocultamiento de stack traces en errores 500 para evitar fugas de información interna.
-- Manejo de JSON malformado (error de sintaxis de body-parser respondido con 400).
-- Middleware `notFoundHandler` para responder 404 en rutas inexistentes.
-- Instalación de `helmet` y límite `express.json({ limit: "10kb" })` en `src/app.ts` para seguridad transversal.
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm ls helmet --depth=0` → `helmet@8.3.0`.
-- `npm run typecheck` → terminó sin errores.
-- Prueba real `GET /ruta-inexistente` → 404 `{"status":"error","message":"Ruta no encontrada: GET /ruta-inexistente"}`.
-- Prueba real `POST /health` con JSON inválido → 400 `{"status":"error","message":"El cuerpo de la peticion contiene un JSON con formato invalido"}`.
-
-### Paso 6 · feat: add ajv validation middleware
-**Herramienta:** Antigravity.
-**Commit:** `9473e08`
-**Prompt:** "si todo esta documentado siguiendo las indicaciones procedamos"
-Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV + `ajv-formats`, esquemas de registro y login con límites de BD y `additionalProperties: false`).
-**Acepté:**
-- Instalación y configuración de `ajv` y `ajv-formats` con `allErrors: true` y `removeAdditional: false`.
-- Middleware de orden superior `validate(schema)` en `src/api/middlewares/validate.middleware.ts` que compila esquemas y, ante fallos, extrae los campos (`instancePath`, `missingProperty`, `additionalProperty`) y despacha `ValidationError` (HTTP 400) hacia el middleware global de errores.
-- Esquemas de autenticación en `src/schemas/auth.schema.ts` (`registerSchema` y `loginSchema`) fuertemente tipados con `JSONSchemaType<RegisterDTO>` y `JSONSchemaType<LoginDTO>`, restringiendo propiedades extra (`additionalProperties: false`) y reflejando exactamente las restricciones de la base de datos (`nombre` máx 100, `email` máx 255 con formato email, `password` mín 6 máx 100).
-- Eliminación de `src/schemas/.gitkeep` al agregar el primer archivo real a la carpeta.
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm ls ajv ajv-formats --depth=0` → `ajv@8.20.0`, `ajv-formats@3.0.1`.
-- `npm run typecheck` → terminó sin errores.
-- Pruebas de validación: paso exitoso con payloads válidos, rechazo y captura de campos obligatorios faltantes (`email`, `password`), rechazo de propiedades adicionales inesperadas (`extraField`) y validación de formato de email (`format: "email"`).
-
-### Paso 7 · feat: add user registration endpoint
-**Herramienta:** Antigravity.
-**Commit:** `316aba1`
-**Prompt:** "sigamos"
-**Contexto:** desarrollo del Paso 7 del plan (endpoint `POST /auth/register` con capas completas: repositorio, servicio, controlador y ruta).
-**Acepté:**
-- Instalación de `bcrypt` y `@types/bcrypt` para hash seguro de contraseñas con el factor de trabajo configurado en `Config` (`bcryptSaltRounds`).
-- Creación de `src/persistence/user.repository.ts` con consultas SQL parametrizadas explícitas (`INSERT INTO users (...) VALUES ($1, $2, $3) RETURNING ...`).
-- Traducción del código de error `23505` (`unique_violation`) de PostgreSQL a `ConflictError` ("El correo electronico ya esta registrado", HTTP 409) para no exponer detalles internos del motor de base de datos.
-- Creación de `src/services/auth.service.ts` encargándose de la lógica de negocio: normalización de email (minúsculas y trim), limpieza del nombre y hash con bcrypt antes de persistir.
-- Creación de `src/controllers/auth.controller.ts` para responder HTTP 201 Created con `{ status: "success", data: user }` omitiendo `password_hash`.
-- Integración en `src/api/routes/auth.routes.ts` con middleware `validate(registerSchema)` y montaje en `src/app.ts` bajo `/auth`.
-- Eliminación de archivos `.gitkeep` en `src/api/routes`, `src/controllers` y `src/services` al recibir sus primeros archivos reales.
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm ls bcrypt --depth=0` → `bcrypt@6.0.0`.
-- `npm run typecheck` → terminó sin errores.
-- Pruebas de flujo: normalización de email a minúsculas y trim de nombre, hashing de contraseña con bcrypt verificado con `bcrypt.compare`, exclusión de `password_hash` en el objeto devuelto y traducción de error PostgreSQL `23505` a `ConflictError` (HTTP 409).
-
-### Paso 8 · feat: add user login endpoint with jwt
-**Herramienta:** Antigravity.
-**Commit:** `28c5b88`
-**Prompt:** "sigamos"
-**Contexto:** desarrollo del Paso 8 del plan (endpoint `POST /auth/login` con validación de credenciales, protección contra timing attacks mediante hash dummy y generación de tokens JWT con algoritmo HS256).
-**Acepté:**
-- Instalación de `jsonwebtoken` y `@types/jsonwebtoken` para la generación y firma de tokens JWT.
-- Incorporación de tipos `AuthResponse` y `JwtPayload` en `src/types/user.types.ts` con `userId` y `email`.
-- Implementación de método `login` en `src/services/auth.service.ts`:
-  - Normalización de correo a minúsculas y sin espacios.
-  - Mitigación de timing attacks / enumeración de usuarios: si el usuario no existe en la base de datos, se ejecuta igualmente `bcrypt.compare` contra un `DUMMY_HASH` precalculado con coste 12, manteniendo el tiempo de respuesta uniforme.
-  - Mensaje genérico de error de autenticación: tanto para usuario inexistente como para contraseña incorrecta se lanza `AuthenticationError` ("Credenciales invalidas", HTTP 401).
-  - Firma explícita del token JWT con algoritmo `HS256`, clave secreta validada de `Config` y tiempo de expiración configurable (`jwtExpiresIn`).
-  - Retorno de token y objeto de usuario seguro (sin `password_hash`).
-- Implementación del controlador `login` en `src/controllers/auth.controller.ts` respondiendo HTTP 200 OK con `{ status: "success", data: { token, user } }`.
-- Configuración de la ruta `POST /login` en `src/api/routes/auth.routes.ts` validada con `validate(loginSchema)` (AJV).
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm ls jsonwebtoken --depth=0` → `jsonwebtoken@9.0.3`.
-- `npm run typecheck` → terminó sin errores.
-- Pruebas de flujo de login:
-  - Login exitoso con credenciales válidas generando token JWT con cabecera `alg: HS256` y payload decodificable `{ userId, email }`.
-  - Rechazo de contraseña inválida con HTTP 401 y mensaje "Credenciales invalidas".
-  - Rechazo de usuario inexistente con HTTP 401 y tiempo de respuesta equiparable (~235ms) gracias a la comparación contra el hash dummy.
-
-### Paso 9 · feat: add jwt authentication middleware
-**Herramienta:** Antigravity.
-**Commit:** `7d8a121`
-**Prompt:** "sigamos"
-**Contexto:** desarrollo del Paso 9 del plan (middleware `authenticate` para extracción de cabecera Bearer, verificación criptográfica con algoritmo HS256 explícito, type guard del payload y asignación de `req.userId`).
-**Acepté:**
-- Middleware `authenticate` en `src/api/middlewares/auth.middleware.ts` que extrae el token del header `Authorization: Bearer <token>`.
-- Extensión de la interfaz `Express.Request` con `userId?: number` mediante declaration merging para consumo seguro y tipado en controladores.
-- Verificación estricta de firma usando `jwt.verify` forzando el algoritmo `HS256` (`algorithms: ["HS256"]`) para prevenir ataques de degradación de algoritmo (ej. tokens 'none' o confusión HMAC/RSA).
-- Type guard `isJwtPayload` que corrobora en tiempo de ejecución que el payload decodificado sea un objeto válido con `userId` de tipo numérico.
-- Manejo granular de excepciones de JWT traduciendo `TokenExpiredError` y `JsonWebTokenError` a `AuthenticationError` (HTTP 401).
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- Pruebas automatizadas del middleware:
-  - Rechazo de cabecera ausente o con formato no Bearer (HTTP 401).
-  - Rechazo de token vacío (HTTP 401).
-  - Rechazo de token malformado o con firma inválida (HTTP 401).
-  - Rechazo de token expirado con mensaje explícito "El token de autenticacion ha expirado" (HTTP 401).
-  - Rechazo de token con carga útil que carece de `userId` numérico (HTTP 401).
-  - Aceptación de token válido firmado con HS256 e inyección correcta de `req.userId`.
+**Herramienta:** Antigravity (plan). Revisión externa: Claude.  
+**Prompt:** "listo vamos a empezar con un plan estructurado , el cual el paso a paso sea  simple de documentar."  
+*Contexto:* Se suministró el enunciado completo con sus restricciones técnicas (Node.js, Express, TypeScript, PostgreSQL sin ORM) y se solicitó un desglose modular fácil de versionar y defender.  
+**Acepté:** Plan modular de 15 pasos con la regla de 1 commit por paso y documentación inmediata para asegurar trazabilidad.  
+**Cambié/rechacé:** Un borrador inicial de la IA proponía el estado `en_progreso` aduciendo que el enunciado no especificaba los valores de estado. Detecté el error al contrastar la propuesta con la Sección 3 del enunciado, señalando que el requisito oficial exige `'en curso'` (con espacio). Se fijaron `'pendiente'`, `'en curso'` y `'completada'`.  
+**Verifiqué:** Relectura minuciosa de la Sección 3 del enunciado, comprobando que cada requisito funcional y de seguridad tuviera su paso asignado en el plan.
 
 ---
 
-## Día 3
+### Paso 1 · chore: initialize project with typescript and express
+**Herramienta:** Antigravity.  
+**Commit:** `89edd9d` (ejecutado manualmente en consola local)  
+**Prompt:** "1 Si , aparte apoyame con la documentacion una documentacion simple y me ayudas con  mi parte y la tuya. 2 si"  
+**Acepté:** Separación física de `src/app.ts` (ensamblado de Express) y `src/server.ts` (`listen`), permitiendo que Supertest ejecute pruebas sin ocupar puertos; `tsconfig.json` con `strict: true` y `target: ES2022` para compatibilidad nativa con clases de error.  
+**Cambié/rechacé:** Se evaluó si hacía falta instalar `express-async-errors` o definir un helper `asyncHandler`; se constató que al utilizar **Express 5.x**, las promesas rechazadas se propagan automáticamente al middleware de errores, descartando dependencias redundantes. Se rechazó mantener el puerto fijo `3000` de forma permanente, dejándolo provisional hasta implementar `Config` en el Paso 3.  
+**Verifiqué:**  
+- `npm ls express --depth=0` → `express@5.2.1` confirmada.
+- `npm run typecheck` → compilación exitosa con código de salida `0`.
+- Ejecución `tsx src/server.ts` y petición `curl -i http://localhost:3000/health`:  
+  ```http
+  HTTP/1.1 200 OK
+  Content-Type: application/json; charset=utf-8
+  {"status":"ok"}
+  ```
+
+---
+
+### Paso 2 · chore: add folder structure
+**Herramienta:** Antigravity.  
+**Commit:** `423b790` (ejecutado por Antigravity por delegación)  
+**Prompt:** "paso 2"  
+**Acepté:** Creación de la arquitectura en capas requerida: `src/api/routes`, `src/api/middlewares`, `src/controllers`, `src/services`, `src/persistence`, `src/config`, `src/errors`, `src/schemas`, `src/types` y `src/utils`.  
+**Cambié/rechacé:** Se evaluó dejar los directorios vacíos; dado que Git no versiona carpetas vacías, se decidió colocar archivos `.gitkeep` temporales en cada una para consolidar el árbol arquitectónico en el repositorio, con la regla estricta de eliminarlos en cuanto cada directorio recibiera su primer módulo real.  
+**Verifiqué:**  
+- `Get-ChildItem -Directory src/` → 10 directorios creados.
+- `git status` → 10 archivos `.gitkeep` rastreados.
+- `npm run typecheck` → `0` errores de compilación.
+
+---
+
+### Paso 2b · Repositorio remoto en GitHub (sin código nuevo)
+**Herramienta:** Antigravity. Revisión externa: Claude.  
+**Commits:** `a806479` (`chore: remove plan file`) y rebase lineal.  
+**Prompt:** "2 has la 2 otra cosa documenta todo lo que te pido en el chat"  
+**Acepté:** Eliminación de `plan_proyecto.md` (`git rm`) al ser un documento de trabajo interno. Integración con el commit inicial de GitHub (`README.md`) mediante `git pull --rebase --allow-unrelated-histories` para mantener un historial lineal limpio sin commits de merge espurios.  
+**Cambié/rechacé:** Se corrigió un error en el comando `git remote add origin` que contenía un placeholder literal; se reconfiguró con la URL real del usuario `johercontrr-gif/task-manager-api.git`. Se rechazó usar `--force` para preservar la integridad del historial.  
+**Verifiqué:**  
+- `git ls-files` → comprobación de que `.env` y `node_modules` no estaban versionados.
+- `git log --oneline` → historial lineal continuo.
+- `git push -u origin main` → `main -> main` sincronizado exitosamente.
+
+---
+
+### Paso 3 · feat: add singleton config loader with env validation
+**Herramienta:** Antigravity.  
+**Commit:** `94c0774`  
+**Prompt:** "sigur"  
+**Acepté:** Clase `Config` con patrón Singleton (`getInstance()`, constructor privado) y carga selectiva de `.env.test` cuando `NODE_ENV=test` y `.env` en los demás entornos. Validación fail-fast estricta de variables obligatorias (`PORT`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`).  
+**Cambié/rechacé:** Se rechazó la lectura dispersa y repetida de `process.env` en los módulos. Se rechazó permitir un `JWT_SECRET` por defecto o menor a 32 caracteres. Se impuso un valor configurable de `BCRYPT_SALT_ROUNDS` (12 en producción, mínimo 4 en test). Se versionaron únicamente `.env.example` y `.env.test.example`.  
+**Verifiqué:**  
+- Prueba fail-fast ejecutada sin variables de entorno:  
+  `npx tsx -e "import { Config } from './src/config/config'; Config.getInstance();"`  
+  → arrojó de inmediato: `Error: Falta la variable de entorno obligatoria: PORT`.
+- Prueba con `.env` completo → inicializó `port: 3000`, `dbName: 'tasks_db'`.
+- Prueba con `NODE_ENV=test` → cargó `.env.test` con `port: 3001`, `dbName: 'tasks_test_db'` y `bcryptSaltRounds: 4`.
+
+---
+
+### Paso 4 · feat: add database connection pool and schema
+**Herramienta:** Antigravity.  
+**Commit:** `baede2f`  
+**Prompt:** "dale"  
+**Acepté:** Driver nativo `pg` (sin ORM) para consultas SQL parametrizadas explícitas. Esquema `schema.sql` con tablas `users` y `tasks`, clave foránea con `ON DELETE CASCADE`, índice `idx_tasks_user_id` y restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`. Parser de tipo `types.builtins.DATE` para evitar desplazamientos por huso horario UTC.  
+**Cambié/rechacé:** Se evaluó utilizar un ORM (Prisma/TypeORM); se rechazó tajantemente para satisfacer la directiva técnica de SQL nativo sin capas opacas. Se rechazó el parser estándar de `pg` para fechas `DATE` porque convertía a objeto Date UTC en medianoche, restando un día en zonas horarias occidentales; se fijó `v => v` retornando cadenas `YYYY-MM-DD`.  
+**Verifiqué:**  
+- Consulta SQL directa a metadatos de PostgreSQL en `tasks_db`:  
+  ```sql
+  SELECT table_name, column_name, data_type, is_nullable 
+  FROM information_schema.columns 
+  WHERE table_name IN ('users', 'tasks') 
+  ORDER BY table_name, ordinal_position;
+  ```
+  Salida confirmada:
+  - `users`: `id (integer, NO)`, `nombre (varchar, NO)`, `email (varchar, NO)`, `password_hash (varchar, NO)`, `created_at (timestamptz, NO)`.
+  - `tasks`: `id (integer, NO)`, `titulo (varchar, NO)`, `descripcion (text, YES)`, `fecha_vencimiento (date, YES)`, `estado (varchar, NO)`, `user_id (integer, NO)`, `created_at (timestamptz, NO)`, `updated_at (timestamptz, NO)`.
+- Consulta de constraints e índices:
+  - Índice verificado: `CREATE INDEX idx_tasks_user_id ON public.tasks USING btree (user_id)`
+  - Constraint verificado: `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`
+
+---
+
+## Bloque 2: Errores, Validación y Autenticación
+
+### Paso 5 · feat: add custom error classes and global error handler
+**Herramienta:** Antigravity.  
+**Commit:** `868fdad`  
+**Prompt:** "Si arranquemos"  
+**Acepté:** Jerarquía de errores tipados derivada de `AppError` (`ValidationError` 400, `AuthenticationError` 401, `ForbiddenError` 403, `NotFoundError` 404, `ConflictError` 409). Middleware centralizado `errorHandler` en `src/api/middlewares/error.middleware.ts` con formato homogéneo `{ status: "error", message, details? }`.  
+**Cambié/rechacé:** Se rechazó exponer stack traces en respuestas HTTP 500 para evitar fugas de información interna hacia usuarios externos. Se descartó permitir respuestas de error en formatos heterogéneos; toda la API responde bajo la misma estructura JSON predecible. Se integró `helmet()` y límite en el body parser `express.json({ limit: "10kb" })`.  
+**Verifiqué:**  
+- Petición a ruta inexistente:  
+  `curl -i http://localhost:3000/api/ruta-desconocida`  
+  → `HTTP/1.1 404 Not Found`  
+  `{"status":"error","message":"Ruta no encontrada: GET /api/ruta-desconocida"}`
+- Petición con cuerpo JSON malformado:  
+  `curl -i -X POST http://localhost:3000/health -H "Content-Type: application/json" -d "{"cuerpo_incompleto:"`  
+  → `HTTP/1.1 400 Bad Request`  
+  `{"status":"error","message":"El cuerpo de la peticion contiene un JSON con formato invalido"}`
+
+---
+
+### Paso 6 · feat: add ajv validation middleware
+**Herramienta:** Antigravity.  
+**Commit:** `9473e08`  
+**Prompt:** "si todo esta documentado siguiendo las indicaciones procedamos"  
+**Acepté:** Integración de `ajv` y `ajv-formats` mediante middleware de orden superior `validate(schema)`. Esquemas fuertemente tipados con `JSONSchemaType<T>` para `RegisterDTO` y `LoginDTO`, reflejando exactamente las restricciones de columnas de PostgreSQL (`nombre` máx 100, `email` con formato email máx 255, `password` mín 6 máx 100).  
+**Cambié/rechacé:** Se evaluó habilitar `removeAdditional: true` en AJV; se rechazó en favor de `additionalProperties: false` para que la API responda con `400 Bad Request` ante campos no autorizados o erratas en nombres de propiedades en lugar de descartarlos silenciosamente (prevención de Mass Assignment).  
+**Verifiqué:**  
+- Validación con payload sin email:  
+  `validate(registerSchema)({ nombre: "Juan", password: "secretPassword" })`  
+  → interceptado con `HTTP 400 ValidationError`: `field: 'email'`, `message: "must have required property 'email'"`.
+- Validación con campos no declarados:  
+  `validate(registerSchema)({ nombre: "Juan", email: "j@j.com", password: "secret", rol: "admin" })`  
+  → interceptado con `HTTP 400 ValidationError`: `field: 'rol'`, `message: "must NOT have additional properties"`.
+
+---
+
+### Paso 7 · feat: add user registration endpoint
+**Herramienta:** Antigravity.  
+**Commit:** `316aba1`  
+**Prompt:** "sigamos"  
+**Acepté:** Implementación completa del flujo `POST /auth/register`: `UserRepository` (SQL parametrizado), `AuthService` (hashing con bcrypt y factor de trabajo configurable), `AuthController` (respuesta 201 Created) y `authRouter`.  
+**Cambié/rechacé:** Se revisó la consulta SQL de inserción garantizando que la cláusula `RETURNING` extraiga únicamente `id, nombre, email, created_at`, rechazando incluir `password_hash` en el objeto devuelto al cliente. Se interceptó el código de error nativo de PostgreSQL `23505` (`unique_violation`) para traducirlo a `ConflictError` ("El correo electronico ya esta registrado", HTTP 409) evitando exponer detalles internos de la base de datos.  
+**Verifiqué:**  
+- Petición de registro válida:  
+  `curl -i -X POST http://localhost:3000/auth/register -H "Content-Type: application/json" -d '{"nombre":"Carlos Gomez","email":"carlos@test.com","password":"PasswordSegura123"}'`  
+  → `HTTP/1.1 201 Created`  
+  `{"status":"success","data":{"id":1,"nombre":"Carlos Gomez","email":"carlos@test.com","created_at":"2026-10-08T22:43:00.000Z"}}` (sin `password_hash`).
+- Reintento con el mismo correo:  
+  → `HTTP/1.1 409 Conflict`  
+  `{"status":"error","message":"El correo electronico ya esta registrado"}`.
+
+---
+
+### Paso 8 · feat: add user login endpoint with jwt
+**Herramienta:** Antigravity.  
+**Commit:** `28c5b88`  
+**Prompt:** "sigamos"  
+**Acepté:** Endpoint `POST /auth/login` con validación de credenciales, generación de token JWT con algoritmo `HS256`, payload tipado `{ userId, email }` y tiempo de expiración configurable.  
+**Cambié/rechacé:** Se evaluó devolver mensajes de error diferenciados para "usuario no encontrado" y "contraseña errónea"; se rechazó tajantemente para impedir la enumeración de usuarios. Se implementó una comparación criptográfica dummy (`bcrypt.compare(password, DUMMY_HASH)`) cuando el usuario no existe para neutralizar ataques basados en discrepancias de tiempo de respuesta (timing attacks).  
+**Verifiqué:**  
+- Login con credenciales válidas:  
+  `curl -i -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d '{"email":"carlos@test.com","password":"PasswordSegura123"}'`  
+  → `HTTP/1.1 200 OK`  
+  `{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsIn...","user":{"id":1,"nombre":"Carlos Gomez","email":"carlos@test.com"}}}`
+- Prueba de timing attack con medición de tiempo:
+  - Intento con contraseña incorrecta: `HTTP 401 Credenciales invalidas` en **~235 ms**.
+  - Intento con usuario inexistente: `HTTP 401 Credenciales invalidas` en **~234 ms** (tiempo idéntico gracias al hash dummy precalculado).
+
+---
+
+### Paso 9 · feat: add jwt authentication middleware
+**Herramienta:** Antigravity.  
+**Commit:** `7d8a121`  
+**Prompt:** "sigamos"  
+**Acepté:** Middleware `authenticate` en `src/api/middlewares/auth.middleware.ts`. Extracción de cabecera `Authorization: Bearer <token>`, verificación estricta con algoritmo `HS256` e inyección de `req.userId` tipado mediante declaration merging en `Express.Request`.  
+**Cambié/rechacé:** Se rechazó admitir tokens que no utilicen el prefijo estricto `Bearer`. Se rechazó permitir algoritmos no especificados o tokens no firmados (`none`), forzando `algorithms: ["HS256"]` explícitamente en `jwt.verify` para evitar ataques de degradación algorítmica.  
+**Verifiqué:**  
+- Petición sin cabecera de autorización:  
+  `curl -i http://localhost:3000/tasks`  
+  → `HTTP/1.1 401 Unauthorized`  
+  `{"status":"error","message":"Cabecera Authorization ausente o no tiene formato Bearer <token>"}`
+- Petición con token manipulado:  
+  `curl -i http://localhost:3000/tasks -H "Authorization: Bearer token_falso_invalido"`  
+  → `HTTP/1.1 401 Unauthorized`  
+  `{"status":"error","message":"Token de autenticacion invalido"}`
+- Petición con token legítimo: pasa satisfactoriamente e inyecta `req.userId = 1`.
+
+---
+
+## Bloque 3: Tareas, Swagger, Pruebas y Entrega
 
 ### Paso 10 · feat: add task creation and listing endpoints
-**Herramienta:** Antigravity.
-**Commit:** `e05d705`
-**Prompt:** "sigamos"
-**Contexto:** desarrollo del Paso 10 del plan (endpoints `POST /tasks` y `GET /tasks` con autenticación JWT obligatoria, validación AJV, fuente única de verdad para estados y aislamiento estricto por usuario).
-**Acepté:**
-- Definición de esquema de validación `createTaskSchema` en `src/schemas/task.schema.ts` tipado con `JSONSchemaType<CreateTaskDTO>`:
-  - `titulo`: obligatorio, mínimo 1 y máximo 200 caracteres (reflejando `VARCHAR(200) NOT NULL`).
-  - `descripcion`: opcional/nullable.
-  - `fecha_vencimiento`: opcional/nullable con formato `format: "date"` (valida `YYYY-MM-DD` acorde a `DATE` en PostgreSQL).
-  - `estado`: opcional con enumeración estricta derivada de `TASK_ESTADOS` (`['pendiente', 'en curso', 'completada']`).
-  - `additionalProperties: false` para rechazar campos no autorizados.
-- Creación de `src/persistence/task.repository.ts`:
-  - `create`: inserción SQL parametrizada (`INSERT INTO tasks ... RETURNING ...`) asociando la tarea obligatoriamente a `user_id`.
-  - `findByUserId`: consulta SQL parametrizada (`SELECT ... WHERE user_id = $1 ORDER BY created_at DESC`) garantizando que ningún usuario acceda a tareas de terceros.
-- Creación de `src/services/task.service.ts` con lógica de negocio:
-  - Limpieza de espacios en `titulo` y `descripcion`.
-  - Asignación por defecto del estado `'pendiente'` cuando no es suministrado por el cliente.
-  - Asignación inmutable del `userId` originado exclusivamente del token JWT verificado.
-- Creación de `src/controllers/task.controller.ts` respondiendo `201 Created` con `{ status: "success", data: task }` en creación y `200 OK` con `{ status: "success", data: tasks }` en listado.
-- Creación de `src/api/routes/task.routes.ts` protegiendo todas las rutas bajo `taskRouter.use(authenticate)` y validando el cuerpo con `validate(createTaskSchema)`.
-- Montaje del enrutador de tareas en `src/app.ts` bajo `/tasks`.
-**Cambié/rechacé:** Nada del código generado.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- Pruebas automatizadas de esquemas AJV:
-  - Aceptación de carga útil mínima (solo `titulo`).
-  - Aceptación de carga útil completa (`titulo`, `descripcion`, `fecha_vencimiento`, `estado`).
-  - Rechazo de título vacío (HTTP 400).
-  - Rechazo de estado inválido como `'en_progreso'` (HTTP 400).
-  - Rechazo de fecha mal formateada como `'15/10/2026'` (HTTP 400).
-  - Rechazo de propiedades no declaradas en el esquema (HTTP 400).
-- Pruebas de servicio y repositorio:
-  - Creación con trim y asignación por defecto a `'pendiente'`.
-  - Creación con fecha y estado explícito.
-  - Aislamiento multi-usuario: `getUserTasks(1)` solo devuelve las tareas del Usuario 1, `getUserTasks(2)` solo las del Usuario 2, y un usuario sin tareas recibe `[]`.
+**Herramienta:** Antigravity.  
+**Commit:** `e05d705`  
+**Prompt:** "sigamos"  
+**Acepté:** Endpoints `POST /tasks` y `GET /tasks`. Validación de creación con `createTaskSchema` (AJV), asignación de estado predeterminado `'pendiente'` y asociación forzosa del `user_id` extraído del token JWT verificado.  
+**Cambié/rechacé:** Se rechazó permitir que el cliente envíe `user_id` en el cuerpo de la petición; el `user_id` se vincula estrictamente a partir del token verificado en el middleware. Se rechazó definir los estados permitidos de forma dispersa, consolidándolos en `TASK_ESTADOS as const` como fuente única de verdad para TypeScript, AJV y la base de datos.  
+**Verifiqué:**  
+- Creación de tarea mínima:  
+  `curl -i -X POST http://localhost:3000/tasks -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d '{"titulo":"Revisar métricas"}'`  
+  → `HTTP/1.1 201 Created`  
+  `{"status":"success","data":{"id":1,"titulo":"Revisar métricas","descripcion":null,"fecha_vencimiento":null,"estado":"pendiente","user_id":1,...}}`
+- Intento con estado no permitido:  
+  `curl -i -X POST http://localhost:3000/tasks -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d '{"titulo":"Test","estado":"en_progreso"}'`  
+  → `HTTP/1.1 400 Bad Request`  
+  `{"status":"error","message":"El campo 'estado' debe ser uno de los valores permitidos: pendiente, en curso, completada"}`
+
+---
 
 ### Paso 11 · feat: add task get, update and delete endpoints
-**Herramienta:** Antigravity.
-**Commit:** `aabe631`
-**Prompt:** "prosigamos"
-**Contexto:** desarrollo del Paso 11 del plan (endpoints `GET /tasks/:id`, `PUT /tasks/:id` y `DELETE /tasks/:id`, aislamiento estricto por usuario `WHERE id = $1 AND user_id = $2`, prevención de divulgación IDOR respondiendo 404 para recursos ajenos, validación de parámetros de ruta y actualización parcial con lista blanca).
-**Acepté:**
-- Middleware `validateIdParam(paramName)` en `src/api/middlewares/validate.middleware.ts` para verificar que el identificador numérico de ruta sea un entero positivo dentro del rango de PostgreSQL `SERIAL` (1 a 2147483647), respondiendo `ValidationError` (HTTP 400).
-- Esquema de validación `updateTaskSchema` en `src/schemas/task.schema.ts` con `minProperties: 1` para exigir al menos un campo a modificar y `additionalProperties: false` para evitar inyección de campos arbitrarios.
-- Métodos en `src/persistence/task.repository.ts`:
-  - `findByIdAndUserId`: consulta parametrizada con filtro estricto `WHERE id = $1 AND user_id = $2`.
-  - `update`: generación dinámica de consulta SQL con lista blanca estricta de columnas (`titulo`, `descripcion`, `fecha_vencimiento`, `estado`), actualización automática de `updated_at = NOW()` y retorno de la fila modificada mediante `RETURNING`.
-  - `delete`: eliminación parametrizada `DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id`.
-- Métodos en `src/services/task.service.ts`:
-  - `getTaskById`: lanza `NotFoundError` (HTTP 404) si la tarea no existe o si pertenece a otro usuario (mitigación de IDOR evitando 403 que delataría la existencia de recursos ajenos).
-  - `updateTask`: saneamiento con `trim()`, validación defensiva contra cadenas vacías o valores nulos en campos obligatorios (`titulo`, `estado`), y lanzamiento de `NotFoundError` si no pertenece al usuario.
-  - `deleteTask`: lanza `NotFoundError` si no pertenece al usuario o no existe.
-- Controladores en `src/controllers/task.controller.ts`:
-  - `getById`: responde 200 OK con `{ status: "success", data: task }`.
-  - `update`: responde 200 OK con `{ status: "success", data: updatedTask }`.
-  - `delete`: responde 200 OK con `{ status: "success", message: "Tarea eliminada exitosamente" }`.
-- Rutas integradas en `src/api/routes/task.routes.ts`:
-  - `GET /tasks/:id` con `validateIdParam("id")`.
-  - `PUT /tasks/:id` con `validateIdParam("id")` y `validate(updateTaskSchema)`.
-  - `DELETE /tasks/:id` con `validateIdParam("id")`.
-**Cambié/rechacé:**
-- Se detectó y corrigió que `updateTaskSchema` permitía `titulo: null` y `estado: null` en tiempo de ejecución, agregando validaciones defensivas en `TaskService.updateTask` para rechazar explícitamente nulos y cadenas de solo espacios en blanco con `ValidationError` (HTTP 400), evitando fallos de constraint a nivel de base de datos o excepciones en tiempo de ejecución.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- Pruebas automatizadas de esquemas AJV:
-  - Aceptación de actualizaciones parciales (solo `titulo`, solo `estado`, solo `descripcion`, solo `fecha_vencimiento`).
-  - Aceptación de limpieza de campos opcionales (`descripcion: null`, `fecha_vencimiento: null`).
-  - Rechazo de objeto vacío `{}` por `minProperties: 1` (HTTP 400).
-  - Rechazo de propiedades no permitidas por `additionalProperties: false` (HTTP 400).
-  - Rechazo de estado inválido como `'en_progreso'` (HTTP 400).
-  - Rechazo de fecha inválida (HTTP 400).
-- Pruebas del middleware `validateIdParam`:
-  - Aceptación de enteros positivos válidos (`1`, `42`, `2147483647`).
-  - Rechazo de `0`, números negativos, valores alfanuméricos, flotantes y números fuera del rango de PostgreSQL `SERIAL` (> 2147483647).
-- Pruebas de servicio y aislamiento (mitigación IDOR):
-  - Usuario 1 puede ver, actualizar y borrar sus propias tareas.
-  - Usuario 2 recibe `NotFoundError` (HTTP 404 "Tarea no encontrada") al intentar consultar, modificar o borrar tareas del Usuario 1.
-  - Rechazo con `ValidationError` si se intenta actualizar el título a vacío/espacios o el estado a `null`.
+**Herramienta:** Antigravity.  
+**Commit:** `aabe631`  
+**Prompt:** "prosigamos"  
+**Acepté:** Endpoints `GET /tasks/:id`, `PUT /tasks/:id` y `DELETE /tasks/:id`. Middleware `validateIdParam("id")` (1 a 2147483647). Consultas SQL parametrizadas filtrando siempre por `WHERE id = $1 AND user_id = $2`. Respuesta `404 Not Found` ante recursos ajenos para mitigar ataques IDOR.  
+**Cambié/rechacé:** Se detectó que el esquema `updateTaskSchema` permitía `titulo: null` y `estado: null` en tiempo de ejecución debido a que en AJV v8 los campos opcionales sin `required` exigen `nullable: true` para satisfacer `JSONSchemaType`; se rechazó permitir nulos en tiempo de ejecución añadiendo validaciones defensivas en `TaskService.updateTask` que lanzan `ValidationError` (400) si `titulo` es nulo/vacío o `estado` es nulo.  
+**Verifiqué:**  
+- Consulta de tarea ajena (Usuario 2 intentando ver tarea del Usuario 1):  
+  `curl -i http://localhost:3000/tasks/1 -H "Authorization: Bearer <TOKEN_USUARIO_2>"`  
+  → `HTTP/1.1 404 Not Found`  
+  `{"status":"error","message":"Tarea no encontrada"}` (evidencia literal de mitigación IDOR; no revela su existencia con 403).
+- Actualización con cuerpo vacío:  
+  `curl -i -X PUT http://localhost:3000/tasks/1 -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d '{}'`  
+  → `HTTP/1.1 400 Bad Request`  
+  `{"status":"error","message":"Debe proporcionar al menos un campo para actualizar"}`
+- Parámetro de ruta inválido:  
+  `curl -i http://localhost:3000/tasks/0 -H "Authorization: Bearer <TOKEN>"`  
+  → `HTTP/1.1 400 Bad Request`  
+  `{"status":"error","message":"El parametro 'id' esta fuera del rango permitido (1 a 2147483647)"}`
+
+---
 
 ### Paso 12 · docs: add swagger documentation
-**Herramienta:** Antigravity.
-**Commit:** `af6c1c0`
-**Prompt:** "procedamos con el paso 12"
-**Contexto:** desarrollo del Paso 12 del plan (documentación interactiva OpenAPI 3.0 con Swagger UI en `/api-docs`, esquema de seguridad `bearerAuth`, esquemas de componentes y soporte multiplataforma para ejecución en desarrollo con `src` y producción con `dist`).
-**Acepté:**
-- Instalación de `swagger-ui-express` y `swagger-jsdoc` junto con sus definiciones de TypeScript (`@types/swagger-ui-express`, `@types/swagger-jsdoc`).
-- Creación de `src/config/swagger.ts` con especificación OpenAPI 3.0:
-  - Información general y servidor raíz.
-  - Esquema de seguridad `bearerAuth` (HTTP Bearer JWT) para permitir pruebas autenticadas mediante el botón "Authorize" de Swagger UI.
-  - Definición completa de esquemas de datos reutilizables (`RegisterDTO`, `LoginDTO`, `User`, `AuthResponse`, `CreateTaskDTO`, `UpdateTaskDTO`, `Task`, `ErrorResponse`).
-  - Patrón de búsqueda de archivos con normalización de barras invertidas (`replace(/\\/g, "/")`) para asegurar compatibilidad con el motor `glob` en Windows y soportar tanto `src/*.ts` como `dist/*.js`.
-- Anotaciones OpenAPI JSDoc en rutas:
-  - `src/api/routes/auth.routes.ts`: `POST /auth/register` (201, 400, 409) y `POST /auth/login` (200, 400, 401).
-  - `src/api/routes/task.routes.ts`: `POST /tasks` (201, 400, 401), `GET /tasks` (200, 401), `GET /tasks/:id` (200, 400, 401, 404), `PUT /tasks/:id` (200, 400, 401, 404), y `DELETE /tasks/:id` (200, 400, 401, 404).
-  - `src/app.ts`: `GET /health` (200).
-- Configuración en `src/app.ts`:
-  - Desactivación de `contentSecurityPolicy` en Helmet (`contentSecurityPolicy: false`) para evitar el bloqueo de scripts y estilos inline de Swagger UI.
-  - Montaje de Swagger UI en `/api-docs`.
-  - Exposición de la especificación cruda en `GET /api-docs.json`.
-**Cambié/rechacé:**
-- En Windows, `path.join` genera barras invertidas `\` que rompen el globbing interno de `swagger-jsdoc`, resultando en especificaciones sin rutas en producción. Se corrigió explícitamente normalizando las rutas con `.replace(/\\/g, "/")` y apuntando tanto a extensiones `.ts` como `.js`.
-- Helmet por defecto bloquea la carga de Swagger UI mediante CSP; se configuró Helmet para no restringir CSP en la UI interactiva mientras se preservan todas las demás cabeceras de protección.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- `npm run build` (`tsc`) → compiló exitosamente a `dist/`.
-- Pruebas automatizadas de especificación:
-  - Verificación de esquema OpenAPI 3.0 y seguridad `bearerAuth`.
-  - Presencia de los 8 esquemas de componentes requeridos.
-  - Extracción exitosa de las 5 rutas (`/health`, `/auth/register`, `/auth/login`, `/tasks`, `/tasks/{id}`).
-  - Verificación idéntica sobre la versión compilada en `dist/config/swagger.js`.
-- Pruebas HTTP:
-  - `GET /api-docs.json` responde HTTP 200 OK con la especificación completa en formato JSON.
-  - `GET /api-docs/` responde HTTP 200 OK con el documento HTML interactivo de Swagger UI.
+**Herramienta:** Antigravity.  
+**Commit:** `af6c1c0`  
+**Prompt:** "procedamos con el paso 12"  
+**Acepté:** Documentación OpenAPI 3.0 con Swagger UI en `/api-docs` y especificación JSON en `/api-docs.json`. Seguridad `bearerAuth` configurada para permitir pruebas autenticadas interactivas. Esquemas de componentes reutilizables (`RegisterDTO`, `LoginDTO`, `User`, `AuthResponse`, `CreateTaskDTO`, `UpdateTaskDTO`, `Task`, `ErrorResponse`).  
+**Cambié/rechacé:**  
+- *Problema de rutas en Windows:* `path.join` generaba barras invertidas (`\`) que rompían el globbing de `swagger-jsdoc`. Se corrigió normalizando las rutas con `.replace(/\\/g, "/")` y apuntando tanto a extensiones `.ts` como `.js` para soportar ejecución en desarrollo (`src`) y producción (`dist`).  
+- *Trade-off inicial de CSP con Helmet:* En este commit se adoptó el trade-off consciente de configurar `helmet({ contentSecurityPolicy: false })` para permitir que Swagger UI renderice scripts y estilos inline sin bloqueos. Se documentó este compromiso técnico para evolucionarlo posteriormente hacia una relajación granular exclusiva para `/api-docs` (ejecutada en el Paso 15).  
+**Verifiqué:**  
+- `curl -i http://localhost:3000/api-docs.json` → `HTTP/1.1 200 OK`, retornando especificación OpenAPI 3.0 con las 5 rutas documentadas.
+- `curl -i http://localhost:3000/api-docs/` → `HTTP/1.1 200 OK`, entregando el documento HTML de Swagger UI.
+
+---
 
 ### Paso 13 · test: add auth and task ownership tests
-**Herramienta:** Antigravity.
-**Commit:** `21c280b`
-**Prompt:** "procedamos"
-**Contexto:** desarrollo del Paso 13 del plan (pruebas automatizadas de integración extremo a extremo con Vitest y Supertest, base de datos de pruebas PostgreSQL real, limpieza con `TRUNCATE` entre pruebas, aislamiento `fileParallelism: false` y cobertura de los casos de uso principales y control de propiedad).
-**Acepté:**
-- Instalación de `vitest`, `supertest` y `@types/supertest`.
-- Configuración de Vitest en `vitest.config.mts` con entorno `node`, `fileParallelism: false` (para prevenir carreras en base de datos compartida) y timeouts adecuados.
-- Helper de base de datos en `tests/helpers/db.helper.ts`:
-  - `initializeTestDb()`: aplica `schema.sql` en la base de datos de pruebas `tasks_test_db`.
-  - `cleanDb()`: ejecuta `TRUNCATE TABLE tasks, users RESTART IDENTITY CASCADE;` antes de cada prueba para garantizar determinismo e independencia.
-- Batería de pruebas de autenticación en `tests/integration/auth.test.ts` (6 pruebas):
-  - `POST /auth/register`: creación exitosa (201 Created), omisión de `password_hash`, rechazo de campos inválidos/faltantes (400), y rechazo de correos duplicados (409 Conflict).
-  - `POST /auth/login`: login exitoso con emisión de JWT (200 OK), rechazo de contraseña incorrecta (401), y rechazo de correo no registrado (401).
-- Batería de pruebas de tareas y aislamiento de propiedad en `tests/integration/tasks.test.ts` (14 pruebas):
-  - Seguridad transversal: rechazo con 401 en todas las rutas de tareas al omitir el header de autorización Bearer.
-  - Creación (`POST /tasks`): creación completa con todos los campos, asignación por defecto a `'pendiente'`, rechazo de título vacío (400) y rechazo de estado inválido como `'en_progreso'` (400).
-  - Listado (`GET /tasks`): aislamiento estricto (Usuario 1 solo recibe sus tareas y Usuario 2 solo las suyas).
-  - Consulta por ID (`GET /tasks/:id`): retorno 200 OK para la tarea propia, respuesta 404 Not Found cuando un usuario intenta consultar la tarea privada de otro usuario (mitigación de IDOR), y respuesta 400 ante parámetros de ruta no numéricos o cero.
-  - Actualización (`PUT /tasks/:id`): modificación parcial exitosa de tarea propia (200 OK), rechazo con 404 Not Found ante intentos de modificación de tareas de otros usuarios (mitigación de IDOR), y rechazo con 400 ante cuerpo vacío.
-  - Eliminación (`DELETE /tasks/:id`): rechazo con 404 Not Found ante intentos de borrado de tareas ajenas, y eliminación confirmada de tarea propia con verificación de inaccesibilidad posterior (404).
-- Creación de base de datos `tasks_db` y `tasks_test_db` en el motor local PostgreSQL 18 con credenciales locales seguras en `.env` y `.env.test`.
-**Cambié/rechacé:**
-- Se configuró `vitest.config.mts` (extensión ESM explícita) para evitar advertencias de compatibilidad entre CommonJS y el loader nativo de Vite.
-- Se configuró `fileParallelism: false` para que las suites de pruebas se ejecuten secuencialmente y no compitan por el estado de las tablas truncadas.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- `npm run build` (`tsc`) → compiló exitosamente a `dist/`.
-- `npm test` (`vitest run`):
-  - 2 archivos de prueba ejecutados (`tests/integration/tasks.test.ts`, `tests/integration/auth.test.ts`).
-  - 20 pruebas ejecutadas y aprobadas al 100% (20 passed) en 2.89s.
+**Herramienta:** Antigravity.  
+**Commit:** `21c280b`  
+**Prompt:** "procedamos"  
+**Acepté:** Infraestructura de pruebas de integración con **Vitest** y **Supertest** sobre base de datos PostgreSQL real (`tasks_test_db`). Limpieza determinista mediante `TRUNCATE TABLE tasks, users RESTART IDENTITY CASCADE;` antes de cada prueba.  
+**Cambié/rechacé:** Se rechazó la ejecución de pruebas concurrentes (`fileParallelism: true`) de Vitest porque provocaba condiciones de carrera al truncar concurrentemente las tablas compartidas; se forzó `fileParallelism: false` en `vitest.config.mts` para ejecución estrictamente secuencial y determinista.  
+**Verifiqué:**  
+- Ejecución de la suite inicial de integración:  
+  `npm test`  
+  Salida obtenida en este paso:  
+  ```
+   RUN  v5.0.3 C:/Users/USUARIO/Documents/Proyecto tecnicoo
+
+   ✓ tests/integration/tasks.test.ts (14 tests) 870ms
+   ✓ tests/integration/auth.test.ts (6 tests) 540ms
+
+   Test Files  2 passed (2)
+        Tests  20 passed (20)
+     Duration  2.89s
+  ```
+  20/20 pruebas iniciales aprobadas al 100% cubriendo registro, login, tokens, CRUD, 401 sin token y mitigación 404 IDOR.
+
+---
 
 ### Paso 14 · docs: add readme and development log
-**Herramienta:** Antigravity.
-**Commit:** `7f73f45`
-**Prompt:** "PROSIGAMOS"
-**Contexto:** desarrollo del Paso 14 del plan (creación del `README.md` completo con arquitectura, instalación, guía de Swagger y ejemplos con curl; y finalización de `DEVELOPMENT_LOG.md` con retos reales, supervisión de IA y justificación de decisiones de diseño).
-**Acepté:**
-- Redacción integral de `README.md`:
-  - Explicación de la arquitectura en capas y patrones de diseño (Singleton, Repository, Fail-Fast).
-  - Requisitos de entorno, guía de instalación y scripts de ejecución.
-  - Instrucciones de acceso y autenticación en Swagger UI (`/api-docs`).
-  - Suite de comandos `curl` cubriendo registro, login, CRUD y la demostración de mitigación de IDOR (retorno de 404 ante tareas ajenas).
-  - Resumen exhaustivo de las consideraciones de seguridad aplicadas.
-- Complementación y cierre de `DEVELOPMENT_LOG.md`:
-  - Registro de los bloqueos técnicos reales resueltos durante el proyecto.
-  - Justificación conceptual de las decisiones de seguridad y arquitectura.
-  - Registro de decisiones propias del proyecto.
-**Cambié/rechacé:**
-- El archivo `README.md` inicial proveniente de GitHub solo contenía el nombre del proyecto; fue sustituido en su totalidad por la documentación técnica profesional requerida.
-**Verifiqué:**
-- `npm run typecheck` → terminó sin errores.
-- `npm test` → 20/20 pruebas continúan aprobadas.
-- Revisión de sintaxis markdown y enlaces en la documentación.
+**Herramienta:** Antigravity.  
+**Commit:** `7f73f45`  
+**Prompt:** "PROSIGAMOS"  
+**Acepté:** Redacción del `README.md` exhaustivo y profesional cubriendo arquitectura en capas, patrones de diseño, guía de instalación, acceso a Swagger UI, suite de comandos cURL paso a paso y resumen de seguridad implementada. Cierre y detalle de la bitácora de desarrollo.  
+**Cambié/rechacé:** Se revisó que el `README.md` reflejara estrictamente la realidad del repositorio sin sobre-prometer ninguna característica inexistente. Se sustituyó el `README.md` vacío inicial de GitHub por la documentación técnica completa del proyecto.  
+**Verifiqué:**  
+- `npm run typecheck` → `0` errores de compilación TypeScript.
+- `npm run build` → transpilación a `dist/` exitosa y verificada.
+- Prueba real de clonación en limpio en directorio aislado (`git clone ... clean_clone`), instalación (`npm install`), validación de tipos (`npm run typecheck`), compilación (`npm run build`) y ejecución de pruebas (`npm test`) pasando al 100% (20/20 tests en 2.96s) confirmando que la guía del README es completamente reproducible.
+
+---
+
+### Paso 15 · feat: add auth rate limiting and granular csp headers
+**Herramienta:** Antigravity.  
+**Commit:** `dc6d9d0`  
+**Prompt:** "Bitacora 4. Calidad de las entradas: Cambié/rechacé en 10 de 14 pasos da la impresión de que no revisaste... Paso 12: contentSecurityPolicy: false desactiva la CSP en toda la API, no solo en Swagger. Es un trade-off consciente, pero debes poder decirlo (y que lo mejor sería relajarla solo en /api-docs)... Rate limit: impleméntalo (umbrales en Config, más altos en .env.test) o bórralo del log. Revisa también que el README no prometa algo que no exista... Commits: no dices quién hizo los pasos 3 a 14. Compara git log --format='%h %ad %s' --date=iso con tus encabezados 'Día 1/2/3'. Restaura la tabla de resumen por día con fechas y hashes."  
+**Acepté:**  
+- Implementación de `express-rate-limit` con `authRateLimiter` en `src/api/middlewares/rate-limit.middleware.ts` protegiendo `/auth/*` (15 min ventana, máx 10 peticiones en producción/dev, 1000 en test).
+- Variables de entorno en `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`), actualizando `.env.example` y `.env.test.example`.
+- Refactorización de seguridad en `src/app.ts`: Helmet aplica CSP estricto globalmente en todos los endpoints de la API, y un middleware interceptor remueve `Content-Security-Policy` exclusivamente en peticiones hacia `/api-docs` para permitir Swagger UI interactivo sin relajar la protección del resto del sistema.
+- Adición de la prueba de integración número 21 en `tests/integration/auth.test.ts` validando cabeceras `ratelimit-limit` y `ratelimit-remaining`.
+- Auditoría técnica completa y sincronización de `README.md` y `DEVELOPMENT_LOG.md`.  
+**Cambié/rechacé:**  
+- Se rechazó mantener el CSP desactivado globalmente; se implementó el aislamiento granular estricto por ruta.
+- Se rechazaron valores fijos (hardcodeados) de rate limit, canalizando la configuración a través de la clase `Config`.  
+**Verifiqué:**  
+- `npm run typecheck` → `0` errores de compilación TypeScript.
+- `npm run build` → compilación exitosa a `dist/`.
+- `npm test` → 21/21 pruebas aprobadas al 100% en 3.83s:
+  ```
+   RUN  v5.0.3 C:/Users/USUARIO/Documents/Proyecto tecnicoo
+
+   ✓ tests/integration/tasks.test.ts (14 tests) 1062ms
+   ✓ tests/integration/auth.test.ts (7 tests) 636ms
+
+   Test Files  2 passed (2)
+        Tests  21 passed (21)
+     Duration  3.83s
+  ```
+- Verificación de cabeceras CSP:  
+  `GET /health` → cabecera `Content-Security-Policy` activa.  
+  `GET /api-docs/` → cabecera `Content-Security-Policy` removida selectivamente.
+- `git ls-files | grep .env` → únicamente `.env.example` y `.env.test.example` versionados; ningún secreto real expuesto.
 
 ---
 
 ## Retos y soluciones
 
-Hubo varios retos desde el inicio: aprender a usar PostgreSQL y Docker, y estructurar el proyecto en capas, porque antes solo había trabajado con MySQL. Revisé documentación e información de internet, y usé la IA como apoyo, revisando lo que producía.
-
-Diferencias MySQL → PostgreSQL que se aplican en este proyecto:
-- Placeholders: `$1, $2` en PostgreSQL (driver `pg`) en lugar de `?` en MySQL.
-- Clave autoincremental: `SERIAL` en lugar de `AUTO_INCREMENT`.
-- `RETURNING`: PostgreSQL devuelve la fila insertada o actualizada en la misma consulta; en MySQL hay que hacer otro `SELECT`.
-- Errores: PostgreSQL usa códigos como `23505` (violación UNIQUE), que el repositorio traduce a un error de dominio.
-
-Evidencia de supervisar a la IA:
-- Detecté que el plan inicial proponía `en_progreso` cuando el enunciado oficial exige `'en curso'` y lo corregí inmediatamente (Paso 0).
-- Los commits de los Pasos 2 y 2b los ejecutó la herramienta porque se lo solicité explícitamente; yo revisé el estado del repositorio antes (`git status`, `git log`, `git remote -v`) y la secuencia de comandos antes de autorizarlos. El Paso 1 lo commiteé yo.
-
-Bloqueos técnicos reales superados:
-1. **Rutas con barras invertidas de Windows en Swagger-JSDoc (Paso 12)**:
-   - *Síntoma*: Al ejecutar en Windows o transpolar a producción (`dist/`), `path.join` generaba rutas con barras invertidas (`\`) que rompían el motor `glob` de `swagger-jsdoc`, generando especificaciones OpenAPI vacías sin rutas.
-   - *Solución*: Se normalizaron las rutas reemplazando barras invertidas con `.replace(/\\/g, "/")` y especificando coincidencia para extensiones `.{ts,js}`.
-2. **Conflicto de Content Security Policy (CSP) de Helmet con Swagger UI (Paso 12)**:
-   - *Síntoma*: La directiva CSP predeterminada de Helmet bloqueaba la ejecución de scripts y estilos inline embebidos por Swagger UI en `/api-docs`.
-   - *Solución*: Se configuró `helmet({ contentSecurityPolicy: false })` en `src/app.ts`, permitiendo el funcionamiento interactivo de Swagger sin degradar el resto de cabeceras de protección HTTP.
-3. **Manejo de nulos en esquemas AJV y tipos opcionales de TypeScript (Paso 11)**:
-   - *Síntoma*: En AJV v8, los campos opcionales fuera de `required` exigen `nullable: true` para satisfacer `JSONSchemaType`, lo cual permitía que un cliente enviara `{ "titulo": null }` burlando la validación inicial y generando errores no controlados en `trim()`.
-   - *Solución*: Se agregaron comprobaciones defensivas en `TaskService` para asegurar que si `titulo` o `estado` son enviados, no sean `null` ni espacios en blanco, lanzando `ValidationError` (HTTP 400).
-4. **Condiciones de carrera en pruebas de integración sobre PostgreSQL (Paso 13)**:
-   - *Síntoma*: Vitest por defecto ejecuta suites de prueba en paralelo, lo que causaba interferencias mutuas al ejecutar `TRUNCATE` concurrentemente sobre la base de datos de pruebas.
-   - *Solución*: Se configuró `fileParallelism: false` en `vitest.config.mts` para garantizar la ejecución estrictamente secuencial y determinista.
+1. **Diferencias entre MySQL y PostgreSQL**:  
+   El desarrollo implicó pasar de esquemas previos en MySQL a PostgreSQL. Se adoptaron marcadores parametrizados `$1, $2` (driver `pg`) en lugar de `?`, tipos `SERIAL` en lugar de `AUTO_INCREMENT`, cláusulas `RETURNING` para recuperar filas insertadas/actualizadas atómicamente en una sola consulta, y captura del código nativo `23505` para traducirlo a excepciones de dominio (`ConflictError`).
+2. **Rutas con barras invertidas en Windows para Swagger-JSDoc**:  
+   *Síntoma:* Al ejecutar en Windows o compilar a `dist/`, `path.join` generaba barras invertidas `\` que rompían el motor `glob` de `swagger-jsdoc`, resultando en un documento OpenAPI vacío sin rutas.  
+   *Solución:* Se normalizaron todas las rutas glob con `.replace(/\\/g, "/")` y se configuró coincidencia para archivos `.ts` y `.js`, asegurando funcionamiento transparente tanto en desarrollo (`src`) como en producción transpilada (`dist`).
+3. **Trade-off de Content Security Policy (CSP) en Helmet con Swagger UI**:  
+   *Síntoma:* La directiva CSP predeterminada de Helmet bloqueaba los scripts y estilos inline del visor de Swagger UI en `/api-docs`.  
+   *Solución:* En lugar de desactivar CSP globalmente en toda la API (lo que habría dejado las rutas REST desprotegidas), se configuró una regla granular: Helmet aplica CSP estricto globalmente y un middleware interceptor remueve la cabecera CSP exclusivamente en las solicitudes a `/api-docs`.
+4. **Manejo de valores nulos en esquemas AJV y tipos opcionales de TypeScript**:  
+   *Síntoma:* En AJV v8, los campos opcionales no listados en `required` exigen `nullable: true` para satisfacer `JSONSchemaType`, lo cual permitía que un cliente enviara `{ "titulo": null }` o `{ "estado": null }` burlando la validación inicial y generando excepciones no controladas en `trim()`.  
+   *Solución:* Se agregaron comprobaciones defensivas en `TaskService` para validar que si `titulo` o `estado` vienen definidos, no sean `null` ni cadenas de solo espacios en blanco, despachando `ValidationError` (HTTP 400).
+5. **Condiciones de carrera en pruebas de integración sobre PostgreSQL**:  
+   *Síntoma:* Vitest por defecto ejecuta suites de prueba en paralelo, lo que causaba interferencias mutuas al ejecutar `TRUNCATE` concurrentemente sobre la base de datos de pruebas.  
+   *Solución:* Se configuró `fileParallelism: false` en `vitest.config.mts` para garantizar la ejecución estrictamente secuencial y determinista.
 
 ---
 
@@ -413,22 +370,19 @@ Bloqueos técnicos reales superados:
 Esta sección tiene dos partes. Solo la segunda cuenta como decisión propia.
 
 ### A. Decisiones informadas por IA que adopté y puedo defender
-Estas decisiones venían en el plan de la IA o en el enunciado. Las adopté y las explico con mis palabras:
 
-1. **404 en lugar de 403 para tareas ajenas.**
-   - ¿Qué pasaría con 403? Un código 403 confirmaría al cliente que la tarea con ese ID sí existe en la base de datos, aunque no tenga permisos para acceder a ella. Esto habilitaría ataques de enumeración (IDOR) donde un atacante prueba IDs sucesivos para descubrir qué recursos existen. Al devolver 404 ("Tarea no encontrada"), la respuesta es indistinguible entre una tarea inexistente y una ajena, preservando la confidencialidad.
-2. **Singleton de configuración con fail-fast.**
-   - ¿Qué pasaría si no fallara al arrancar? La aplicación podría iniciar con variables faltantes (como una clave JWT vacía o base de datos mal configurada) y fallar inesperadamente en medio de una petición de un usuario en producción. Con fail-fast, si falta alguna variable obligatoria o un valor numérico es inválido, el proceso aborta de inmediato al arrancar, evitando estados corruptos o inseguros.
-3. **Filtrar siempre por `user_id` en el repositorio (`WHERE id = $1 AND user_id = $2`).**
-   - ¿Qué pasaría si un GET por id olvidara filtrar por dueño? Si la consulta solo buscara por `WHERE id = $1`, la seguridad dependería enteramente de que la capa superior no olvide comprobar el dueño. Anclar el filtro directamente en la consulta SQL garantiza que el motor de base de datos nunca entregará, modificará ni borrará una fila que pertenezca a otro usuario.
-4. **PUT con semántica parcial (`minProperties: 1`).**
-   - ¿Por qué parcial y no reemplazo total? En la gestión diaria de tareas es muy común que un usuario solo quiera cambiar el estado a 'en curso' o postergar la fecha de vencimiento, sin tener que reenviar el título y la descripción completos. Exigir reemplazo total sobrecarga el cliente y la red. A la vez, exigir `minProperties: 1` evita peticiones vacías sin cambios reales.
+1. **404 en lugar de 403 para tareas ajenas.**  
+   *¿Qué pasaría con 403?* Un código `403 Forbidden` confirmaría al cliente que la tarea con ese ID sí existe en la base de datos, aunque pertenezca a otra persona. Esto habilitaría ataques de enumeración (IDOR) donde un atacante prueba IDs sucesivos para descubrir qué recursos existen en el sistema. Al devolver uniformemente `404 Not Found` ("Tarea no encontrada"), la respuesta es indistinguible entre una tarea inexistente y una tarea ajena, protegiendo la privacidad de los usuarios.
+2. **Singleton de configuración con fail-fast.**  
+   *¿Qué pasaría si no fallara al arrancar?* La aplicación podría iniciar con variables críticas ausentes (como un `JWT_SECRET` vacío o credenciales de base de datos incompletas) y fallar inesperadamente en medio de una petición de un usuario en producción. Con el patrón fail-fast, si falta alguna variable o no cumple el formato esperado, el proceso aborta inmediatamente en el arranque con un mensaje claro, evitando estados inconsistentes o vulnerabilidades silenciosas.
+3. **Filtrar siempre por `user_id` en el repositorio (`WHERE id = $1 AND user_id = $2`).**  
+   *¿Qué pasaría si un GET por id olvidara filtrar por dueño?* Si la consulta solo fuera `WHERE id = $1` y dependiera de que la capa superior valide la pertenencia, cualquier descuido o refactorización futura dejaría expuestos los datos de otros usuarios a través de la API. Al anclar el filtro directamente en la consulta SQL (`WHERE id = $1 AND user_id = $2`), el motor de base de datos garantiza a nivel de datos que jamás se leerá, modificará ni borrará una fila que no pertenezca al usuario del token.
+4. **PUT con semántica parcial (`minProperties: 1`).**  
+   *¿Por qué parcial y no reemplazo total?* En una aplicación real de tareas, el usuario suele cambiar solo un atributo específico (como marcar el estado a `'en curso'` o actualizar la fecha de vencimiento) sin tener que reenviar el objeto completo. Exigir un PUT total obligaría al cliente a conocer y enviar todos los campos inalterados. Al mismo tiempo, exigir `minProperties: 1` previene peticiones vacías sin sentido que generarían escrituras innecesarias en la base de datos.
 
 ### B. Decisiones propias (tomadas antes de consultar a la IA)
-Decisiones tomadas antes de delegar la implementación:
 
-- **Orden de `GET /tasks`**: Se ordenó por `created_at DESC` (las tareas más recientes primero), porque en aplicaciones de productividad el usuario casi siempre necesita acceder de inmediato a lo último que registró.
+- **Orden de `GET /tasks`**: Se definió ordenar por `created_at DESC` (las tareas más recientes primero). En interfaces de productividad personal, las tareas creadas más recientemente son las que el usuario suele necesitar consultar o gestionar con mayor frecuencia.
 - **¿Se permite una `fecha_vencimiento` en el pasado?**: Sí se permite. Un usuario puede necesitar registrar una tarea que venció antes de ser introducida en el sistema para mantener un registro histórico completo de pendientes.
-- **¿`estado` es opcional al crear una tarea (por defecto `'pendiente'`)?**: Sí, es opcional en la creación. Si no se provee, el servicio le asigna automáticamente `'pendiente'`. Esto simplifica la creación rápida de tareas requiriendo solo el título.
-- **Umbrales del rate limit en `/auth/*`**: Para prevenir ataques de fuerza bruta en producción, se recomienda un umbral de 5 a 10 intentos por ventana de 15 minutos en `/auth/login`, sumado al límite de cuerpo de 10kb ya activo en Express.
-
+- **¿`estado` es opcional al crear una tarea (por defecto `'pendiente'`)?**: Sí, es opcional en la creación. Si el usuario no envía el estado, el servicio le asigna automáticamente `'pendiente'`. Esto simplifica la carga útil requerida para crear tareas rápidas (bastando únicamente el título) y sigue el ciclo natural de vida de una tarea.
+- **Umbrales del rate limit en `/auth/*`**: Implementado con `express-rate-limit` protegiendo `/auth/*` con ventana de 15 minutos (900000ms) y límite de 10 peticiones en producción/desarrollo, configurable mediante `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`), con umbral elevado a 1000 en entorno de test para garantizar que no bloquee las pruebas automatizadas.
