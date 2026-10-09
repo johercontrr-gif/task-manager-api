@@ -120,6 +120,22 @@ Contexto: desarrollo del Paso 5 del plan (clases de error personalizadas y middl
 - Prueba real `GET /ruta-inexistente` → 404 `{"status":"error","message":"Ruta no encontrada: GET /ruta-inexistente"}`.
 - Prueba real `POST /health` con JSON inválido → 400 `{"status":"error","message":"El cuerpo de la peticion contiene un JSON con formato invalido"}`.
 
+### Paso 6 · feat: add ajv validation middleware
+**Herramienta:** Antigravity.
+**Commit:** `9473e08`
+**Prompt:** "si todo esta documentado siguiendo las indicaciones procedamos"
+Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV + `ajv-formats`, esquemas de registro y login con límites de BD y `additionalProperties: false`).
+**Acepté:**
+- Instalación y configuración de `ajv` y `ajv-formats` con `allErrors: true` y `removeAdditional: false`.
+- Middleware de orden superior `validate(schema)` en `src/api/middlewares/validate.middleware.ts` que compila esquemas y, ante fallos, extrae los campos (`instancePath`, `missingProperty`, `additionalProperty`) y despacha `ValidationError` (HTTP 400) hacia el middleware global de errores.
+- Esquemas de autenticación en `src/schemas/auth.schema.ts` (`registerSchema` y `loginSchema`) fuertemente tipados con `JSONSchemaType<RegisterDTO>` y `JSONSchemaType<LoginDTO>`, restringiendo propiedades extra (`additionalProperties: false`) y reflejando exactamente las restricciones de la base de datos (`nombre` máx 100, `email` máx 255 con formato email, `password` mín 6 máx 100).
+- Eliminación de `src/schemas/.gitkeep` al agregar el primer archivo real a la carpeta.
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm ls ajv ajv-formats --depth=0` → `ajv@8.20.0`, `ajv-formats@3.0.1`.
+- `npm run typecheck` → terminó sin errores.
+- Pruebas de validación: paso exitoso con payloads válidos, rechazo y captura de campos obligatorios faltantes (`email`, `password`), rechazo de propiedades adicionales inesperadas (`extraField`) y validación de formato de email (`format: "email"`).
+
 ---
 
 ## Retos y soluciones
