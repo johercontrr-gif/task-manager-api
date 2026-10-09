@@ -204,6 +204,47 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
 
 ---
 
+## Día 3
+
+### Paso 10 · feat: add task creation and listing endpoints
+**Herramienta:** Antigravity.
+**Commit:** `e05d705`
+**Prompt:** "sigamos"
+**Contexto:** desarrollo del Paso 10 del plan (endpoints `POST /tasks` y `GET /tasks` con autenticación JWT obligatoria, validación AJV, fuente única de verdad para estados y aislamiento estricto por usuario).
+**Acepté:**
+- Definición de esquema de validación `createTaskSchema` en `src/schemas/task.schema.ts` tipado con `JSONSchemaType<CreateTaskDTO>`:
+  - `titulo`: obligatorio, mínimo 1 y máximo 200 caracteres (reflejando `VARCHAR(200) NOT NULL`).
+  - `descripcion`: opcional/nullable.
+  - `fecha_vencimiento`: opcional/nullable con formato `format: "date"` (valida `YYYY-MM-DD` acorde a `DATE` en PostgreSQL).
+  - `estado`: opcional con enumeración estricta derivada de `TASK_ESTADOS` (`['pendiente', 'en curso', 'completada']`).
+  - `additionalProperties: false` para rechazar campos no autorizados.
+- Creación de `src/persistence/task.repository.ts`:
+  - `create`: inserción SQL parametrizada (`INSERT INTO tasks ... RETURNING ...`) asociando la tarea obligatoriamente a `user_id`.
+  - `findByUserId`: consulta SQL parametrizada (`SELECT ... WHERE user_id = $1 ORDER BY created_at DESC`) garantizando que ningún usuario acceda a tareas de terceros.
+- Creación de `src/services/task.service.ts` con lógica de negocio:
+  - Limpieza de espacios en `titulo` y `descripcion`.
+  - Asignación por defecto del estado `'pendiente'` cuando no es suministrado por el cliente.
+  - Asignación inmutable del `userId` originado exclusivamente del token JWT verificado.
+- Creación de `src/controllers/task.controller.ts` respondiendo `201 Created` con `{ status: "success", data: task }` en creación y `200 OK` con `{ status: "success", data: tasks }` en listado.
+- Creación de `src/api/routes/task.routes.ts` protegiendo todas las rutas bajo `taskRouter.use(authenticate)` y validando el cuerpo con `validate(createTaskSchema)`.
+- Montaje del enrutador de tareas en `src/app.ts` bajo `/tasks`.
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- Pruebas automatizadas de esquemas AJV:
+  - Aceptación de carga útil mínima (solo `titulo`).
+  - Aceptación de carga útil completa (`titulo`, `descripcion`, `fecha_vencimiento`, `estado`).
+  - Rechazo de título vacío (HTTP 400).
+  - Rechazo de estado inválido como `'en_progreso'` (HTTP 400).
+  - Rechazo de fecha mal formateada como `'15/10/2026'` (HTTP 400).
+  - Rechazo de propiedades no declaradas en el esquema (HTTP 400).
+- Pruebas de servicio y repositorio:
+  - Creación con trim y asignación por defecto a `'pendiente'`.
+  - Creación con fecha y estado explícito.
+  - Aislamiento multi-usuario: `getUserTasks(1)` solo devuelve las tareas del Usuario 1, `getUserTasks(2)` solo las del Usuario 2, y un usuario sin tareas recibe `[]`.
+
+---
+
 ## Retos y soluciones
 
 Hubo varios retos desde el inicio: aprender a usar PostgreSQL y Docker, y estructurar el proyecto en capas, porque antes solo había trabajado con MySQL. Revisé documentación e información de internet, y usé la IA como apoyo, revisando lo que producía.
