@@ -180,6 +180,28 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
   - Rechazo de contraseña inválida con HTTP 401 y mensaje "Credenciales invalidas".
   - Rechazo de usuario inexistente con HTTP 401 y tiempo de respuesta equiparable (~235ms) gracias a la comparación contra el hash dummy.
 
+### Paso 9 · feat: add jwt authentication middleware
+**Herramienta:** Antigravity.
+**Commit:** `7d8a121`
+**Prompt:** "sigamos"
+**Contexto:** desarrollo del Paso 9 del plan (middleware `authenticate` para extracción de cabecera Bearer, verificación criptográfica con algoritmo HS256 explícito, type guard del payload y asignación de `req.userId`).
+**Acepté:**
+- Middleware `authenticate` en `src/api/middlewares/auth.middleware.ts` que extrae el token del header `Authorization: Bearer <token>`.
+- Extensión de la interfaz `Express.Request` con `userId?: number` mediante declaration merging para consumo seguro y tipado en controladores.
+- Verificación estricta de firma usando `jwt.verify` forzando el algoritmo `HS256` (`algorithms: ["HS256"]`) para prevenir ataques de degradación de algoritmo (ej. tokens 'none' o confusión HMAC/RSA).
+- Type guard `isJwtPayload` que corrobora en tiempo de ejecución que el payload decodificado sea un objeto válido con `userId` de tipo numérico.
+- Manejo granular de excepciones de JWT traduciendo `TokenExpiredError` y `JsonWebTokenError` a `AuthenticationError` (HTTP 401).
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- Pruebas automatizadas del middleware:
+  - Rechazo de cabecera ausente o con formato no Bearer (HTTP 401).
+  - Rechazo de token vacío (HTTP 401).
+  - Rechazo de token malformado o con firma inválida (HTTP 401).
+  - Rechazo de token expirado con mensaje explícito "El token de autenticacion ha expirado" (HTTP 401).
+  - Rechazo de token con carga útil que carece de `userId` numérico (HTTP 401).
+  - Aceptación de token válido firmado con HS256 e inyección correcta de `req.userId`.
+
 ---
 
 ## Retos y soluciones
