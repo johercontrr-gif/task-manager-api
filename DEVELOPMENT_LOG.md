@@ -243,6 +243,49 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
   - Creación con fecha y estado explícito.
   - Aislamiento multi-usuario: `getUserTasks(1)` solo devuelve las tareas del Usuario 1, `getUserTasks(2)` solo las del Usuario 2, y un usuario sin tareas recibe `[]`.
 
+### Paso 11 · feat: add task get, update and delete endpoints
+**Herramienta:** Antigravity.
+**Commit:** `aabe631`
+**Prompt:** "prosigamos"
+**Contexto:** desarrollo del Paso 11 del plan (endpoints `GET /tasks/:id`, `PUT /tasks/:id` y `DELETE /tasks/:id`, aislamiento estricto por usuario `WHERE id = $1 AND user_id = $2`, prevención de divulgación IDOR respondiendo 404 para recursos ajenos, validación de parámetros de ruta y actualización parcial con lista blanca).
+**Acepté:**
+- Middleware `validateIdParam(paramName)` en `src/api/middlewares/validate.middleware.ts` para verificar que el identificador numérico de ruta sea un entero positivo dentro del rango de PostgreSQL `SERIAL` (1 a 2147483647), respondiendo `ValidationError` (HTTP 400).
+- Esquema de validación `updateTaskSchema` en `src/schemas/task.schema.ts` con `minProperties: 1` para exigir al menos un campo a modificar y `additionalProperties: false` para evitar inyección de campos arbitrarios.
+- Métodos en `src/persistence/task.repository.ts`:
+  - `findByIdAndUserId`: consulta parametrizada con filtro estricto `WHERE id = $1 AND user_id = $2`.
+  - `update`: generación dinámica de consulta SQL con lista blanca estricta de columnas (`titulo`, `descripcion`, `fecha_vencimiento`, `estado`), actualización automática de `updated_at = NOW()` y retorno de la fila modificada mediante `RETURNING`.
+  - `delete`: eliminación parametrizada `DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id`.
+- Métodos en `src/services/task.service.ts`:
+  - `getTaskById`: lanza `NotFoundError` (HTTP 404) si la tarea no existe o si pertenece a otro usuario (mitigación de IDOR evitando 403 que delataría la existencia de recursos ajenos).
+  - `updateTask`: saneamiento con `trim()`, validación defensiva contra cadenas vacías o valores nulos en campos obligatorios (`titulo`, `estado`), y lanzamiento de `NotFoundError` si no pertenece al usuario.
+  - `deleteTask`: lanza `NotFoundError` si no pertenece al usuario o no existe.
+- Controladores en `src/controllers/task.controller.ts`:
+  - `getById`: responde 200 OK con `{ status: "success", data: task }`.
+  - `update`: responde 200 OK con `{ status: "success", data: updatedTask }`.
+  - `delete`: responde 200 OK con `{ status: "success", message: "Tarea eliminada exitosamente" }`.
+- Rutas integradas en `src/api/routes/task.routes.ts`:
+  - `GET /tasks/:id` con `validateIdParam("id")`.
+  - `PUT /tasks/:id` con `validateIdParam("id")` y `validate(updateTaskSchema)`.
+  - `DELETE /tasks/:id` con `validateIdParam("id")`.
+**Cambié/rechacé:**
+- Se detectó y corrigió que `updateTaskSchema` permitía `titulo: null` y `estado: null` en tiempo de ejecución, agregando validaciones defensivas en `TaskService.updateTask` para rechazar explícitamente nulos y cadenas de solo espacios en blanco con `ValidationError` (HTTP 400), evitando fallos de constraint a nivel de base de datos o excepciones en tiempo de ejecución.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- Pruebas automatizadas de esquemas AJV:
+  - Aceptación de actualizaciones parciales (solo `titulo`, solo `estado`, solo `descripcion`, solo `fecha_vencimiento`).
+  - Aceptación de limpieza de campos opcionales (`descripcion: null`, `fecha_vencimiento: null`).
+  - Rechazo de objeto vacío `{}` por `minProperties: 1` (HTTP 400).
+  - Rechazo de propiedades no permitidas por `additionalProperties: false` (HTTP 400).
+  - Rechazo de estado inválido como `'en_progreso'` (HTTP 400).
+  - Rechazo de fecha inválida (HTTP 400).
+- Pruebas del middleware `validateIdParam`:
+  - Aceptación de enteros positivos válidos (`1`, `42`, `2147483647`).
+  - Rechazo de `0`, números negativos, valores alfanuméricos, flotantes y números fuera del rango de PostgreSQL `SERIAL` (> 2147483647).
+- Pruebas de servicio y aislamiento (mitigación IDOR):
+  - Usuario 1 puede ver, actualizar y borrar sus propias tareas.
+  - Usuario 2 recibe `NotFoundError` (HTTP 404 "Tarea no encontrada") al intentar consultar, modificar o borrar tareas del Usuario 1.
+  - Rechazo con `ValidationError` si se intenta actualizar el título a vacío/espacios o el estado a `null`.
+
 ---
 
 ## Retos y soluciones
