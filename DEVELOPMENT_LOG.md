@@ -136,6 +136,25 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
 - `npm run typecheck` → terminó sin errores.
 - Pruebas de validación: paso exitoso con payloads válidos, rechazo y captura de campos obligatorios faltantes (`email`, `password`), rechazo de propiedades adicionales inesperadas (`extraField`) y validación de formato de email (`format: "email"`).
 
+### Paso 7 · feat: add user registration endpoint
+**Herramienta:** Antigravity.
+**Commit:** `316aba1`
+**Prompt:** "sigamos"
+**Contexto:** desarrollo del Paso 7 del plan (endpoint `POST /auth/register` con capas completas: repositorio, servicio, controlador y ruta).
+**Acepté:**
+- Instalación de `bcrypt` y `@types/bcrypt` para hash seguro de contraseñas con el factor de trabajo configurado en `Config` (`bcryptSaltRounds`).
+- Creación de `src/persistence/user.repository.ts` con consultas SQL parametrizadas explícitas (`INSERT INTO users (...) VALUES ($1, $2, $3) RETURNING ...`).
+- Traducción del código de error `23505` (`unique_violation`) de PostgreSQL a `ConflictError` ("El correo electronico ya esta registrado", HTTP 409) para no exponer detalles internos del motor de base de datos.
+- Creación de `src/services/auth.service.ts` encargándose de la lógica de negocio: normalización de email (minúsculas y trim), limpieza del nombre y hash con bcrypt antes de persistir.
+- Creación de `src/controllers/auth.controller.ts` para responder HTTP 201 Created con `{ status: "success", data: user }` omitiendo `password_hash`.
+- Integración en `src/api/routes/auth.routes.ts` con middleware `validate(registerSchema)` y montaje en `src/app.ts` bajo `/auth`.
+- Eliminación de archivos `.gitkeep` en `src/api/routes`, `src/controllers` y `src/services` al recibir sus primeros archivos reales.
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm ls bcrypt --depth=0` → `bcrypt@6.0.0`.
+- `npm run typecheck` → terminó sin errores.
+- Pruebas de flujo: normalización de email a minúsculas y trim de nombre, hashing de contraseña con bcrypt verificado con `bcrypt.compare`, exclusión de `password_hash` en el objeto devuelto y traducción de error PostgreSQL `23505` a `ConflictError` (HTTP 409).
+
 ---
 
 ## Retos y soluciones
