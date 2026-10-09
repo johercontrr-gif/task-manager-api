@@ -35,6 +35,7 @@
 | **Audit 4** | `fc01a95` | 2026-10-09 14:13:33 -05:00 | johercontrr-gif (vía Antigravity) | `refactor(db): clarify DATE parser timezone comment and declare node engines` |
 | **Audit 5** | `33cdc92` | 2026-10-09 14:14:16 -05:00 | johercontrr-gif (vía Antigravity) | `docs: update readme with verified node version, complete env variables, and test db setup` |
 | **Audit 6** | `d9feb36` | 2026-10-09 17:13:00 -05:00 | johercontrr-gif (vía Antigravity) | `docs: improve readme with endpoint table, conventions, windows commands and docker details` |
+| **16** | `c687ca3` | 2026-10-09 17:41:15 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add render deployment configuration and cloud database support` |
 
 > **Aclaración sobre cronología, ritmo y estructura de commits:**  
 > 1. **Estructura de commits en el repositorio:**  
@@ -394,6 +395,36 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
   `GET /health` → cabecera `Content-Security-Policy` activa.  
   `GET /api-docs/` → cabecera `Content-Security-Policy` removida selectivamente.
 - `git ls-files | grep .env` → únicamente `.env.example` y `.env.test.example` versionados; ningún secreto real expuesto.
+
+---
+
+## Bloque 4: Despliegue en la Nube y DevOps
+
+### Paso 16 · feat: add render deployment configuration and cloud database support
+**Herramienta:** Antigravity.  
+**Commit:** `c687ca3`  
+**Prompt:** "Vamos a agregar un nuevo paso para preparar el despliegue del proyecto en Render. Crea la configuración necesaria (como un archivo render.yaml) para levantar tanto nuestra API como la base de datos PostgreSQL en la nube. Asegúrate de dejar listos los scripts en el package.json para compilar el código TypeScript y arrancar la aplicación en producción, y explícame qué variables de entorno vamos a necesitar configurar en la plataforma."  
+**Acepté:**
+- Archivo `render.yaml` (Infrastructure as Code - Blueprint) que provisiona automáticamente el servicio web Node.js y la base de datos PostgreSQL administrada en la capa gratuita.
+- Script idempotente `src/persistence/init-db.ts` y comando npm `"db:init": "node dist/persistence/init-db.js"` para ejecutar el esquema `schema.sql` durante la fase de compilación en Render (`buildCommand: npm install && npm run build && node dist/persistence/init-db.js`).
+- Extensión de la clase `Config` y de `getPool()` en `src/persistence/db.ts` para soportar opcionalmente cadenas `DATABASE_URL` y conexión cifrada SSL condicional (`DB_SSL=true`, `ssl: { rejectUnauthorized: false }`) requeridas por bases de datos PostgreSQL en la nube.
+- Adición de scripts `db:init` y `db:init:dev` en `package.json` conservando los comandos de compilación (`tsc`) y ejecución (`node dist/server.js`).
+- Documentación de variables en `.env.example`.
+**Cambié/rechacé:**
+- Se rechazó exigir obligatoriamente `DATABASE_URL`, manteniendo soporte intacto para variables atómicas (`DB_HOST`, `DB_PORT`, etc.) para no quebrar el desarrollo local con Docker Compose ni las pruebas en Vitest.
+- Se rechazó forzar SSL incondicionalmente; se condicionó a `process.env.DB_SSL === "true"` para permitir conexiones locales sin certificados.
+- Se rechazó escribir credenciales o secretos en `render.yaml`; se configuró `fromDatabase` para conectar la base de datos de manera transparente y `generateValue: true` para que Render genere un `JWT_SECRET` criptográfico de longitud adecuada automáticamente.
+**Verifiqué:**
+- `npm run typecheck` → compilación estricta de TypeScript con `0` errores.
+- `npm run build` → transpilación exitosa a `dist/` incluyendo `dist/persistence/init-db.js`.
+- `npm run db:init` → ejecución en consola:
+  ```text
+  [db:init] Aplicando esquema DDL desde: src/persistence/schema.sql
+  [db:init] Tablas e índices creados / verificados satisfactoriamente.
+  [db:init] Proceso de inicialización finalizado con éxito.
+  ```
+- `npm test` → 22 pruebas de integración pasando exitosamente (auth + tasks).
+- `git status` y verificación de `render.yaml`.
 
 ---
 
