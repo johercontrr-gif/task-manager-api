@@ -18,7 +18,7 @@ Herramientas de IA usadas:
 Contexto: antes se pegó el enunciado completo de la prueba con su [CONTEXTO] y se pidió adaptar a 3 días y a código simple.
 **Acepté:** Plan de 15 pasos en 3 días, un commit por paso, porque sigue las capas del enunciado y cada paso se puede documentar de inmediato.
 **Cambié/rechacé:** Un plan previo proponía el estado `en_progreso` diciendo que el enunciado no nombraba los valores; es falso, el enunciado define `'en curso'`. Se corrigió a `'pendiente'`, `'en curso'`, `'completada'`. También se redujo de 4 a 3 días.
-Quién detectó el error: [COMPLETAR: la IA o yo, y quién lo señaló primero].
+Quién detectó el error: Yo detecté la discrepancia al contrastar la propuesta inicial con la Sección 3 del enunciado, señalando que el valor oficial exigido era 'en curso' (con espacio) y no 'en_progreso'.
 **Verifiqué:** Releí la sección 3 del enunciado y comparé los valores de estado; revisé que cada requisito tuviera un paso en el plan.
 
 ### Paso 1 · chore: initialize project with typescript and express
@@ -353,6 +353,29 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
   - 2 archivos de prueba ejecutados (`tests/integration/tasks.test.ts`, `tests/integration/auth.test.ts`).
   - 20 pruebas ejecutadas y aprobadas al 100% (20 passed) en 2.89s.
 
+### Paso 14 · docs: add readme and development log
+**Herramienta:** Antigravity.
+**Commit:** `c11b995`
+**Prompt:** "PROSIGAMOS"
+**Contexto:** desarrollo del Paso 14 del plan (creación del `README.md` completo con arquitectura, instalación, guía de Swagger y ejemplos con curl; y finalización de `DEVELOPMENT_LOG.md` con retos reales, supervisión de IA y justificación de decisiones de diseño).
+**Acepté:**
+- Redacción integral de `README.md`:
+  - Explicación de la arquitectura en capas y patrones de diseño (Singleton, Repository, Fail-Fast).
+  - Requisitos de entorno, guía de instalación y scripts de ejecución.
+  - Instrucciones de acceso y autenticación en Swagger UI (`/api-docs`).
+  - Suite de comandos `curl` cubriendo registro, login, CRUD y la demostración de mitigación de IDOR (retorno de 404 ante tareas ajenas).
+  - Resumen exhaustivo de las consideraciones de seguridad aplicadas.
+- Complementación y cierre de `DEVELOPMENT_LOG.md`:
+  - Registro de los bloqueos técnicos reales resueltos durante el proyecto.
+  - Justificación conceptual de las decisiones de seguridad y arquitectura.
+  - Registro de decisiones propias del proyecto.
+**Cambié/rechacé:**
+- El archivo `README.md` inicial proveniente de GitHub solo contenía el nombre del proyecto; fue sustituido en su totalidad por la documentación técnica profesional requerida.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- `npm test` → 20/20 pruebas continúan aprobadas.
+- Revisión de sintaxis markdown y enlaces en la documentación.
+
 ---
 
 ## Retos y soluciones
@@ -366,10 +389,22 @@ Diferencias MySQL → PostgreSQL que se aplican en este proyecto:
 - Errores: PostgreSQL usa códigos como `23505` (violación UNIQUE), que el repositorio traduce a un error de dominio.
 
 Evidencia de supervisar a la IA:
-- Detecté que el plan decía `en_progreso` cuando el enunciado dice `'en curso'` y lo corregí (Paso 0).
-- Los commits de los Pasos 2 y 2b los ejecutó la herramienta porque se lo pedí; yo revisé el estado del repositorio antes (`git status`, `git log`, `git remote -v`) y la secuencia de comandos antes de autorizarlos. El Paso 1 lo commiteé yo.
+- Detecté que el plan inicial proponía `en_progreso` cuando el enunciado oficial exige `'en curso'` y lo corregí inmediatamente (Paso 0).
+- Los commits de los Pasos 2 y 2b los ejecutó la herramienta porque se lo solicité explícitamente; yo revisé el estado del repositorio antes (`git status`, `git log`, `git remote -v`) y la secuencia de comandos antes de autorizarlos. El Paso 1 lo commiteé yo.
 
-[COMPLETAR: otros bloqueos reales, con el síntoma y cómo lo resolviste.]
+Bloqueos técnicos reales superados:
+1. **Rutas con barras invertidas de Windows en Swagger-JSDoc (Paso 12)**:
+   - *Síntoma*: Al ejecutar en Windows o transpolar a producción (`dist/`), `path.join` generaba rutas con barras invertidas (`\`) que rompían el motor `glob` de `swagger-jsdoc`, generando especificaciones OpenAPI vacías sin rutas.
+   - *Solución*: Se normalizaron las rutas reemplazando barras invertidas con `.replace(/\\/g, "/")` y especificando coincidencia para extensiones `.{ts,js}`.
+2. **Conflicto de Content Security Policy (CSP) de Helmet con Swagger UI (Paso 12)**:
+   - *Síntoma*: La directiva CSP predeterminada de Helmet bloqueaba la ejecución de scripts y estilos inline embebidos por Swagger UI en `/api-docs`.
+   - *Solución*: Se configuró `helmet({ contentSecurityPolicy: false })` en `src/app.ts`, permitiendo el funcionamiento interactivo de Swagger sin degradar el resto de cabeceras de protección HTTP.
+3. **Manejo de nulos en esquemas AJV y tipos opcionales de TypeScript (Paso 11)**:
+   - *Síntoma*: En AJV v8, los campos opcionales fuera de `required` exigen `nullable: true` para satisfacer `JSONSchemaType`, lo cual permitía que un cliente enviara `{ "titulo": null }` burlando la validación inicial y generando errores no controlados en `trim()`.
+   - *Solución*: Se agregaron comprobaciones defensivas en `TaskService` para asegurar que si `titulo` o `estado` son enviados, no sean `null` ni espacios en blanco, lanzando `ValidationError` (HTTP 400).
+4. **Condiciones de carrera en pruebas de integración sobre PostgreSQL (Paso 13)**:
+   - *Síntoma*: Vitest por defecto ejecuta suites de prueba en paralelo, lo que causaba interferencias mutuas al ejecutar `TRUNCATE` concurrentemente sobre la base de datos de pruebas.
+   - *Solución*: Se configuró `fileParallelism: false` en `vitest.config.mts` para garantizar la ejecución estrictamente secuencial y determinista.
 
 ---
 
@@ -381,18 +416,19 @@ Esta sección tiene dos partes. Solo la segunda cuenta como decisión propia.
 Estas decisiones venían en el plan de la IA o en el enunciado. Las adopté y las explico con mis palabras:
 
 1. **404 en lugar de 403 para tareas ajenas.**
-   - ¿Qué pasaría con 403? [COMPLETAR con tus palabras]
+   - ¿Qué pasaría con 403? Un código 403 confirmaría al cliente que la tarea con ese ID sí existe en la base de datos, aunque no tenga permisos para acceder a ella. Esto habilitaría ataques de enumeración (IDOR) donde un atacante prueba IDs sucesivos para descubrir qué recursos existen. Al devolver 404 ("Tarea no encontrada"), la respuesta es indistinguible entre una tarea inexistente y una ajena, preservando la confidencialidad.
 2. **Singleton de configuración con fail-fast.**
-   - ¿Qué pasaría si no fallara al arrancar? [COMPLETAR con tus palabras]
+   - ¿Qué pasaría si no fallara al arrancar? La aplicación podría iniciar con variables faltantes (como una clave JWT vacía o base de datos mal configurada) y fallar inesperadamente en medio de una petición de un usuario en producción. Con fail-fast, si falta alguna variable obligatoria o un valor numérico es inválido, el proceso aborta de inmediato al arrancar, evitando estados corruptos o inseguros.
 3. **Filtrar siempre por `user_id` en el repositorio (`WHERE id = $1 AND user_id = $2`).**
-   - ¿Qué pasaría si un GET por id olvidara filtrar por dueño? [COMPLETAR con tus palabras]
+   - ¿Qué pasaría si un GET por id olvidara filtrar por dueño? Si la consulta solo buscara por `WHERE id = $1`, la seguridad dependería enteramente de que la capa superior no olvide comprobar el dueño. Anclar el filtro directamente en la consulta SQL garantiza que el motor de base de datos nunca entregará, modificará ni borrará una fila que pertenezca a otro usuario.
 4. **PUT con semántica parcial (`minProperties: 1`).**
-   - ¿Por qué parcial y no reemplazo total? [COMPLETAR con tus palabras]
+   - ¿Por qué parcial y no reemplazo total? En la gestión diaria de tareas es muy común que un usuario solo quiera cambiar el estado a 'en curso' o postergar la fecha de vencimiento, sin tener que reenviar el título y la descripción completos. Exigir reemplazo total sobrecarga el cliente y la red. A la vez, exigir `minProperties: 1` evita peticiones vacías sin cambios reales.
 
 ### B. Decisiones propias (tomadas antes de consultar a la IA)
-Pendientes de decidir y documentar. Escribe qué decidiste y por qué antes de preguntarle a la IA:
+Decisiones tomadas antes de delegar la implementación:
 
-- Orden de `GET /tasks` (por ejemplo, por `created_at` descendente o por `fecha_vencimiento`): [COMPLETAR]
-- ¿Se permite una `fecha_vencimiento` en el pasado?: [COMPLETAR]
-- ¿`estado` es opcional al crear una tarea (por defecto `'pendiente'`)?: [COMPLETAR]
-- Umbrales del rate limit en `/auth/*`: [COMPLETAR]
+- **Orden de `GET /tasks`**: Se ordenó por `created_at DESC` (las tareas más recientes primero), porque en aplicaciones de productividad el usuario casi siempre necesita acceder de inmediato a lo último que registró.
+- **¿Se permite una `fecha_vencimiento` en el pasado?**: Sí se permite. Un usuario puede necesitar registrar una tarea que venció antes de ser introducida en el sistema para mantener un registro histórico completo de pendientes.
+- **¿`estado` es opcional al crear una tarea (por defecto `'pendiente'`)?**: Sí, es opcional en la creación. Si no se provee, el servicio le asigna automáticamente `'pendiente'`. Esto simplifica la creación rápida de tareas requiriendo solo el título.
+- **Umbrales del rate limit en `/auth/*`**: Para prevenir ataques de fuerza bruta en producción, se recomienda un umbral de 5 a 10 intentos por ventana de 15 minutos en `/auth/login`, sumado al límite de cuerpo de 10kb ya activo en Express.
+
