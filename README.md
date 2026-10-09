@@ -33,7 +33,7 @@ src/
 
 ## 📋 Requisitos Previos
 
-- **Node.js**: v18.0.0 o superior (recomendado v20+)
+- **Node.js**: Probado y verificado en **v24.14.1** (requiere `v20.0.0` o superior)
 - **PostgreSQL**: v14.0 o superior (o Docker / Docker Compose)
 - **npm**: v9.0 o superior
 
@@ -70,9 +70,16 @@ DB_NAME=tasks_db
 JWT_SECRET=tu_clave_secreta_de_al_menos_32_caracteres_aleatorios
 JWT_EXPIRES_IN=1h
 BCRYPT_SALT_ROUNDS=12
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=10
 ```
 
-Para las pruebas automatizadas, configura `.env.test`:
+Para las pruebas automatizadas, crea y configura `.env.test`:
+```bash
+cp .env.test.example .env.test
+```
+
+Contenido de `.env.test`:
 ```env
 PORT=3001
 DB_HOST=localhost
@@ -83,12 +90,14 @@ DB_NAME=tasks_test_db
 JWT_SECRET=secreto_solo_para_pruebas_de_al_menos_32_caracteres
 JWT_EXPIRES_IN=1h
 BCRYPT_SALT_ROUNDS=4
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=1000
 ```
 
 ### 4. Inicializar la Base de Datos
 
 **Opción A: PostgreSQL Local**
-Conéctate a tu cliente PostgreSQL (`psql` o pgAdmin) y ejecuta:
+Conéctate a tu cliente PostgreSQL (`psql` o pgAdmin) y crea las dos bases de datos:
 ```sql
 CREATE DATABASE tasks_db;
 CREATE DATABASE tasks_test_db;
@@ -97,10 +106,18 @@ Luego aplica el esquema en `tasks_db`:
 ```bash
 psql -U postgres -d tasks_db -f src/persistence/schema.sql
 ```
+*(Nota: Para `tasks_test_db`, el esquema se aplica de forma automática al ejecutar `npm test` a través del helper `initializeTestDb()`)*.
 
 **Opción B: Con Docker Compose**
+Inicia el contenedor de PostgreSQL:
 ```bash
 docker compose up -d
+```
+*(Docker inicializa automáticamente `tasks_db` con `src/persistence/schema.sql` montado en `/docker-entrypoint-initdb.d/`)*.
+
+Para crear la base de datos de pruebas dentro del contenedor de Docker, ejecuta:
+```bash
+docker compose exec postgres psql -U postgres -c "CREATE DATABASE tasks_test_db;"
 ```
 
 ### 5. Iniciar la aplicación
