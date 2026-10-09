@@ -15,12 +15,8 @@ import taskRouter from "./api/routes/task.routes";
  */
 const app = express();
 
-// Seguridad en cabeceras HTTP (deshabilita CSP para permitir renderizado interactivo de Swagger UI)
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  })
-);
+// Seguridad en cabeceras HTTP: se activa Helmet con protecciones estrictas globales (incluyendo CSP)
+app.use(helmet());
 
 // Limite de tamano en peticiones JSON para prevenir ataques de denegacion de servicio (DoS)
 app.use(express.json({ limit: "10kb" }));
@@ -49,7 +45,13 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// Documentacion interactiva de la API con Swagger UI
+// Documentacion interactiva con Swagger UI:
+// Se relaja la cabecera Content-Security-Policy exclusivamente en /api-docs para permitir
+// la ejecucion de scripts y estilos inline del visor, manteniendo CSP estricto en el resto de la API.
+app.use("/api-docs", (_req, res, next) => {
+  res.removeHeader("Content-Security-Policy");
+  next();
+});
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Especificacion OpenAPI en formato JSON crudo

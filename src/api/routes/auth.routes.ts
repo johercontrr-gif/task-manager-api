@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { authController } from "../../controllers/auth.controller";
 import { validate } from "../middlewares/validate.middleware";
+import { authRateLimiter } from "../middlewares/rate-limit.middleware";
 import { loginSchema, registerSchema } from "../../schemas/auth.schema";
 
 const router = Router();
+
+// Limitacion de tasa para mitigar ataques de fuerza bruta
+router.use(authRateLimiter);
 
 /**
  * @openapi

@@ -135,5 +135,18 @@ describe("Endpoints de Autenticacion (/auth)", () => {
       expect(res.body.status).toBe("error");
       expect(res.body.message).toMatch(/credenciales invalidas/i);
     });
+
+    it("debe incluir cabeceras de rate limiting en respuestas de autenticacion", async () => {
+      const res = await request(app)
+        .post("/auth/login")
+        .send({
+          email: "ana@example.com",
+          password: "passwordValida123",
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.headers).toHaveProperty("ratelimit-limit");
+      expect(res.headers).toHaveProperty("ratelimit-remaining");
+    });
   });
 });

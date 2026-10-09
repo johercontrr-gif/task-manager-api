@@ -23,6 +23,8 @@ export class Config {
   readonly jwtSecret: string;
   readonly jwtExpiresIn: string;
   readonly bcryptSaltRounds: number;
+  readonly rateLimitWindowMs: number;
+  readonly rateLimitMaxRequests: number;
 
   /** El constructor es privado: la unica forma de obtener la config es getInstance(). */
   private constructor() {
@@ -48,6 +50,10 @@ export class Config {
     if (this.bcryptSaltRounds < minRounds) {
       throw new Error(`BCRYPT_SALT_ROUNDS debe ser al menos ${minRounds}`);
     }
+
+    // Rate limiting para rutas sensibles de autenticacion
+    this.rateLimitWindowMs = Config.readNumber("RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000);
+    this.rateLimitMaxRequests = Config.readNumber("RATE_LIMIT_MAX_REQUESTS", isTest ? 1000 : 10);
   }
 
   /** Devuelve la unica instancia, creandola (y validando el entorno) la primera vez. */
