@@ -34,6 +34,7 @@
 | **Audit 3** | `5db1fd5` | 2026-10-09 14:13:17 -05:00 | johercontrr-gif (vía Antigravity) | `feat(rate-limit): add limiter factory and test 429 json response format` |
 | **Audit 4** | `fc01a95` | 2026-10-09 14:13:33 -05:00 | johercontrr-gif (vía Antigravity) | `refactor(db): clarify DATE parser timezone comment and declare node engines` |
 | **Audit 5** | `33cdc92` | 2026-10-09 14:14:16 -05:00 | johercontrr-gif (vía Antigravity) | `docs: update readme with verified node version, complete env variables, and test db setup` |
+| **Audit 6** | `d9feb36` | 2026-10-09 17:13:00 -05:00 | johercontrr-gif (vía Antigravity) | `docs: improve readme with endpoint table, conventions, windows commands and docker details` |
 
 > **Aclaración sobre cronología, ritmo y estructura de commits:**  
 > 1. **Estructura de commits en el repositorio:**  
@@ -41,7 +42,7 @@
 > 2. **Ritmo de trabajo y ejecución concentrada:**  
 >    Los Pasos 7 a 10 se integraron en 14 minutos (22:43 a 22:57 del 8 de octubre) y los Pasos 11 a 14 en 27 minutos (10:37 a 11:04 del 9 de octubre). Estas franjas corresponden a dos sesiones de ejecución intensiva y continua donde la lógica, los esquemas AJV y las consultas SQL ya habían sido diseñados y revisados conceptualmente en el plan estructurado del Paso 0. Cada commit fue probado (`npm run typecheck`, pruebas manuales y suite de tests) antes de su confirmación. Cada resultado en la sección "Verifiqué" es reproducible y defendible en vivo.
 > 3. **Falta de atomicidad en el Paso 15:**  
->    En el commit `dc6d9d0` (Paso 15) se mezclaron rate limiting, CSP, una prueba de integración, README y bitácora. Reconozco que este commit no fue estrictamente atómico en comparación con los pasos previos. Para subsanar esta desviación, las mejoras de auditoría posteriores (`3806913`, `5db1fd5`, `fc01a95`, `33cdc92`) se desglosaron en commits pequeños, modulares y atómicos.
+>    En el commit `dc6d9d0` (Paso 15) se mezclaron rate limiting, CSP, una prueba de integración, README y bitácora. Reconozco que este commit no fue estrictamente atómico en comparación con los pasos previos. Para subsanar esta desviación, las mejoras de auditoría posteriores (`3806913`, `5db1fd5`, `fc01a95`, `33cdc92`, `d9feb36`) se desglosaron en commits pequeños, modulares y atómicos.
 
 ---
 
@@ -66,6 +67,10 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 4. **Prompt de auditoría de precisión técnica:**  
    `"4. Defecto técnico en el Paso 6. Dice password mín 6, máx 100. Lo acordado era mínimo 8 y un máximo pensado para bcrypt: lo que pase de 72 bytes se trunca silenciosamente. Además dice que refleja 'columnas', pero la columna guarda el hash, no la contraseña... 5. La explicación del DATE en el Paso 4 es incorrecta. pg crea el Date en medianoche local, no UTC. El desfase aparece al este de UTC... 6. README y bitácora se contradicen (created_at en login, variables de rate limit en README, test db)... 7. Ritmo y atomicidad... 8. El rate limit se prueba a medias: falta ver respuesta 429 real... 9. Menores: CSP en REST, papel de Claude subreportado..."`  
    *Aporte de Claude:* Condujo a corregir el esquema de contraseña a 8-72 caracteres, rectificar la física de la zona horaria de DATE, añadir la prueba de integración del código HTTP 429 con mensaje JSON homogéneo y sincronizar al 100% el README y la bitácora.
+
+5. **Prompt de auditoría de reproducibilidad, coherencia y rigor en documentación:**  
+   `"revisa esto si o no Lo que me devolvió GitHub es idéntico al README que vi antes, incluida la petición cacheada. Si ya subiste correcciones, ábrelo en una ventana privada para confirmar que están en main; tal como lo veo, ninguno de los puntos que te señalé se refleja todavía. Cubre las cuatro cosas que pide el enunciado... pero tiene fallos de reproducibilidad y de coherencia. Puede hacer fallar a un evaluador... Comandos solo para bash... Base de datos de pruebas... Docker... Sobre-promesas... Lo que falta y suma puntos: Tabla de endpoints... Modelo de datos y convenciones... Diagrama de capas... Clona el repo en una carpeta nueva y sigue solo el README..."`  
+   *Aporte de Claude:* Condujo a incorporar comandos nativos de Windows (PowerShell/CMD), advertencia sobre cURL en PowerShell recomendando Swagger UI, detalles operacionales de Docker (recreación de volúmenes con docker compose down -v y creación de tasks_test_db), lenguaje técnico sin sobre-promesas, tabla resumen de endpoints de consulta rápida en 20 segundos, modelo de datos y convenciones de respuesta homogénea.
 
 ---
 
