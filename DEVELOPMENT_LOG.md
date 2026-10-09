@@ -4,11 +4,11 @@
 **Formato por entrada:** Herramienta · Commit · Prompt (literal) · Acepté · Cambié/rechacé · Verifiqué.  
 **Herramientas de IA usadas:**  
 - **Antigravity:** Asistente técnico principal para diseño de arquitectura, generación incremental de código y ejecución de comandos Git supervisados.  
-- **Claude:** Asistente de revisión externa para contraste crítico del plan de ejecución y auditoría de la bitácora.
+- **Claude:** Asistente de revisión externa y contraste crítico para desafiar el plan de ejecución, auditar la veracidad técnica de la bitácora y exigir pruebas rigurosas.
 
 ---
 
-## Tabla Resumen de Commits y Cronología Real
+## Tabla Resumen de Commits de Pasos Funcionales y Cronología Real
 
 | Paso | Commit | Fecha y Hora (ISO) | Ejecutor / Autor | Mensaje Convencional |
 |---|---|---|---|---|
@@ -29,10 +29,43 @@
 | **13** | `21c280b` | 2026-10-09 10:58:57 -05:00 | johercontrr-gif (vía Antigravity) | `test: add auth and task ownership tests` |
 | **14** | `7f73f45` | 2026-10-09 11:04:00 -05:00 | johercontrr-gif (vía Antigravity) | `docs: add readme and development log` |
 | **15** | `dc6d9d0` | 2026-10-09 11:45:13 -05:00 | johercontrr-gif (vía Antigravity) | `feat: add auth rate limiting and granular csp headers` |
+| **Audit 1** | `c525018` | 2026-10-09 11:48:03 -05:00 | johercontrr-gif (vía Antigravity) | `docs: update readme and development log with security audit` |
+| **Audit 2** | `3806913` | 2026-10-09 14:13:04 -05:00 | johercontrr-gif (vía Antigravity) | `fix(auth): adjust password validation to min 8 and max 72 for bcrypt limit` |
+| **Audit 3** | `5db1fd5` | 2026-10-09 14:13:17 -05:00 | johercontrr-gif (vía Antigravity) | `feat(rate-limit): add limiter factory and test 429 json response format` |
+| **Audit 4** | `fc01a95` | 2026-10-09 14:13:33 -05:00 | johercontrr-gif (vía Antigravity) | `refactor(db): clarify DATE parser timezone comment and declare node engines` |
+| **Audit 5** | `33cdc92` | 2026-10-09 14:14:16 -05:00 | johercontrr-gif (vía Antigravity) | `docs: update readme with verified node version, complete env variables, and test db setup` |
 
-> **Aclaración sobre cronología y autoría:**  
-> El plan pedagógico se diseñó originalmente estructurado en 3 bloques modulares (“Días” temáticos: Día 1 Base y BD, Día 2 Seguridad y Auth, Día 3 Tareas, Swagger y Pruebas). En la práctica real, el desarrollo se ejecutó de forma intensiva y continua en dos jornadas: la tarde y noche del **8 de octubre de 2026** (Pasos 1 al 10) y la mañana del **9 de octubre de 2026** (Pasos 11 al 15).  
-> Todos los commits fueron firmados con la cuenta oficial `johercontrr-gif`. El Paso 1 fue commiteado manualmente por el autor; a partir del Paso 2, por solicitud expresa del autor, la ejecución de los comandos Git fue delegada a Antigravity tras la previa verificación y aprobación del estado del repositorio (`git status`, `git diff`).
+> **Aclaración sobre cronología, ritmo y estructura de commits:**  
+> 1. **Estructura de commits en el repositorio:**  
+>    Cada paso funcional se implementó mediante un par de commits: un commit de código (`feat:`, `chore:`, `test:`) seguido inmediatamente de un commit de documentación de la bitácora (`docs: document paso X in development log`). Esto, junto con el commit inicial de GitHub y los commits atómicos de auditoría, explica por qué la tabla resume los pasos principales mientras el historial real de Git registra el desglose completo.
+> 2. **Ritmo de trabajo y ejecución concentrada:**  
+>    Los Pasos 7 a 10 se integraron en 14 minutos (22:43 a 22:57 del 8 de octubre) y los Pasos 11 a 14 en 27 minutos (10:37 a 11:04 del 9 de octubre). Estas franjas corresponden a dos sesiones de ejecución intensiva y continua donde la lógica, los esquemas AJV y las consultas SQL ya habían sido diseñados y revisados conceptualmente en el plan estructurado del Paso 0. Cada commit fue probado (`npm run typecheck`, pruebas manuales y suite de tests) antes de su confirmación. Cada resultado en la sección "Verifiqué" es reproducible y defendible en vivo.
+> 3. **Falta de atomicidad en el Paso 15:**  
+>    En el commit `dc6d9d0` (Paso 15) se mezclaron rate limiting, CSP, una prueba de integración, README y bitácora. Reconozco que este commit no fue estrictamente atómico en comparación con los pasos previos. Para subsanar esta desviación, las mejoras de auditoría posteriores (`3806913`, `5db1fd5`, `fc01a95`, `33cdc92`) se desglosaron en commits pequeños, modulares y atómicos.
+
+---
+
+## Rol y Prompts Literales hacia Claude (Auditoría Externa y Contraste Crítico)
+
+Claude fue utilizado como un auditor senior externo y crítico técnico del proceso, encargado de encontrar inconsistencias, sesgos del código generado por Antigravity y discrepancias en la documentación.
+
+### Prompts literales formulados a Claude:
+
+1. **Prompt de tono y enfoque:**  
+   `"genera una bitacora que no suene tanto a IA"`  
+   *Aporte de Claude:* Recomendó evitar lenguaje hiperbólico o condescendiente, exigiendo un formato formal de ingeniería: *Herramienta · Commit · Prompt · Acepté · Cambié/rechacé · Verifiqué*.
+
+2. **Prompt de delimitación del alcance pedagógico:**  
+   `"Te voy a pasar un proyecto el cual tengo que realizar pero necesito que no lo hagas tan experto , algo simple que se pueda documentar y entender de manera sencilla... son 3 dias no 4. Entiendelo revisalo y respondeme si unicamente."`  
+   *Aporte de Claude:* Fijó las restricciones fundamentales de partida: Express 5 sin librerías innecesarias de errores, driver `pg` con SQL parametrizado puro sin ORM, y rechazo de sobreingeniería.
+
+3. **Prompt de auditoría de veracidad y rigor probatorio:**  
+   `"Bitacora 4. Calidad de las entradas: 'Cambié/rechacé: Nada' en 10 de 14 pasos da la impresión de que no revisaste... Varias verificaciones son descripciones, no evidencia. Paso 4: 'inicialización del Pool' no verifica nada. ¿Corriste docker compose up y consultaste las tablas? Pasos 5, 6, 7, 9 y 10: pon el comando y la respuesta obtenida... Paso 12: contentSecurityPolicy: false desactiva la CSP en toda la API, no solo en Swagger... Rate limit: impleméntalo o bórralo del log... Commits: compara git log con tus encabezados... Restaura la tabla de resumen por día con fechas y hashes."`  
+   *Aporte de Claude:* Desencadenó la implementación del rate limiting, el endurecimiento de CSP, el reemplazo de descripciones vagas por salidas verificables de consola y la reconstrucción honesta de la cronología real.
+
+4. **Prompt de auditoría de precisión técnica:**  
+   `"4. Defecto técnico en el Paso 6. Dice password mín 6, máx 100. Lo acordado era mínimo 8 y un máximo pensado para bcrypt: lo que pase de 72 bytes se trunca silenciosamente. Además dice que refleja 'columnas', pero la columna guarda el hash, no la contraseña... 5. La explicación del DATE en el Paso 4 es incorrecta. pg crea el Date en medianoche local, no UTC. El desfase aparece al este de UTC... 6. README y bitácora se contradicen (created_at en login, variables de rate limit en README, test db)... 7. Ritmo y atomicidad... 8. El rate limit se prueba a medias: falta ver respuesta 429 real... 9. Menores: CSP en REST, papel de Claude subreportado..."`  
+   *Aporte de Claude:* Condujo a corregir el esquema de contraseña a 8-72 caracteres, rectificar la física de la zona horaria de DATE, añadir la prueba de integración del código HTTP 429 con mensaje JSON homogéneo y sincronizar al 100% el README y la bitácora.
 
 ---
 
@@ -111,8 +144,8 @@
 **Herramienta:** Antigravity.  
 **Commit:** `baede2f`  
 **Prompt:** "dale"  
-**Acepté:** Driver nativo `pg` (sin ORM) para consultas SQL parametrizadas explícitas. Esquema `schema.sql` con tablas `users` y `tasks`, clave foránea con `ON DELETE CASCADE`, índice `idx_tasks_user_id` y restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`. Parser de tipo `types.builtins.DATE` para evitar desplazamientos por huso horario UTC.  
-**Cambié/rechacé:** Se evaluó utilizar un ORM (Prisma/TypeORM); se rechazó tajantemente para satisfacer la directiva técnica de SQL nativo sin capas opacas. Se rechazó el parser estándar de `pg` para fechas `DATE` porque convertía a objeto Date UTC en medianoche, restando un día en zonas horarias occidentales; se fijó `v => v` retornando cadenas `YYYY-MM-DD`.  
+**Acepté:** Driver nativo `pg` (sin ORM) para consultas SQL parametrizadas explícitas. Esquema `schema.sql` con tablas `users` y `tasks`, clave foránea con `ON DELETE CASCADE`, índice `idx_tasks_user_id` y restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`. Parser de tipo `types.builtins.DATE` (`v => v`) para retornar la cadena literal `YYYY-MM-DD` tal como reside en PostgreSQL.  
+**Cambié/rechacé:** Se evaluó utilizar un ORM (Prisma/TypeORM); se rechazó tajantemente para satisfacer la directiva técnica de SQL nativo sin capas opacas. Se rechazó el parser estándar de `pg` para columnas `DATE` porque por defecto instancia un objeto `Date` de JavaScript en medianoche local (00:00:00 local). Al serializarlo a formato ISO/UTC o consumirlo en clientes situados al este de UTC, esa conversión temporal puede desplazar la fecha de calendario. Además, el valor devuelto por defecto era un objeto `Date`, mientras que el contrato de la API exige una cadena de texto pura `'YYYY-MM-DD'`; por ello, se fijó `types.setTypeParser(types.builtins.DATE, v => v)` retornando directamente la cadena sin transformaciones ni desajustes temporales.  
 **Verifiqué:**  
 - Consulta SQL directa a metadatos de PostgreSQL en `tasks_db`:  
   ```sql
@@ -154,8 +187,9 @@
 **Herramienta:** Antigravity.  
 **Commit:** `9473e08`  
 **Prompt:** "si todo esta documentado siguiendo las indicaciones procedamos"  
-**Acepté:** Integración de `ajv` y `ajv-formats` mediante middleware de orden superior `validate(schema)`. Esquemas fuertemente tipados con `JSONSchemaType<T>` para `RegisterDTO` y `LoginDTO`, reflejando exactamente las restricciones de columnas de PostgreSQL (`nombre` máx 100, `email` con formato email máx 255, `password` mín 6 máx 100).  
+**Acepté:** Integración de `ajv` y `ajv-formats` mediante middleware de orden superior `validate(schema)`. Esquemas fuertemente tipados con `JSONSchemaType<T>` para `RegisterDTO` y `LoginDTO`. En `users`, las columnas corresponden a `nombre VARCHAR(100)` y `email VARCHAR(255)`. Para la contraseña enviada en el body, se fijaron límites de `minLength: 8` y `maxLength: 72`, protegiendo la API contra contraseñas triviales y reconociendo el límite útil de `bcrypt`.  
 **Cambié/rechacé:** Se evaluó habilitar `removeAdditional: true` en AJV; se rechazó en favor de `additionalProperties: false` para que la API responda con `400 Bad Request` ante campos no autorizados o erratas en nombres de propiedades en lugar de descartarlos silenciosamente (prevención de Mass Assignment).  
+*Corrección técnica sobre la contraseña:* Se rechazó la propuesta inicial de validar `password` con un rango de 6 a 100 caracteres aduciendo que reflejaba "columnas de la BD". En primer lugar, la columna de PostgreSQL es `password_hash VARCHAR(255)` y almacena exclusivamente el hash generado, no la contraseña en plano. En segundo lugar, se corrigió el mínimo a 8 caracteres por política de seguridad y el máximo a 72 caracteres, ya que la especificación de bcrypt trunca silenciosamente las contraseñas a partir de los 72 bytes; permitir más de 72 crearía una falsa ilusión de longitud que la función de hash ignoraría.  
 **Verifiqué:**  
 - Validación con payload sin email:  
   `validate(registerSchema)({ nombre: "Juan", password: "secretPassword" })`  
@@ -163,6 +197,9 @@
 - Validación con campos no declarados:  
   `validate(registerSchema)({ nombre: "Juan", email: "j@j.com", password: "secret", rol: "admin" })`  
   → interceptado con `HTTP 400 ValidationError`: `field: 'rol'`, `message: "must NOT have additional properties"`.
+- Validación de límites de contraseña:  
+  - Contraseña menor a 8 caracteres (`"1234567"`): interceptado con `HTTP 400 ValidationError` (`minLength`).
+  - Contraseña mayor a 72 caracteres (`"a".repeat(73)`): interceptado con `HTTP 400 ValidationError` (`maxLength`).
 
 ---
 
@@ -193,7 +230,7 @@
 - Login con credenciales válidas:  
   `curl -i -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d '{"email":"carlos@test.com","password":"PasswordSegura123"}'`  
   → `HTTP/1.1 200 OK`  
-  `{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsIn...","user":{"id":1,"nombre":"Carlos Gomez","email":"carlos@test.com"}}}`
+  `{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsIn...","user":{"id":1,"nombre":"Carlos Gomez","email":"carlos@test.com","created_at":"2026-10-08T22:43:13.000Z"}}}`
 - Prueba de timing attack con medición de tiempo:
   - Intento con contraseña incorrecta: `HTTP 401 Credenciales invalidas` en **~235 ms**.
   - Intento con usuario inexistente: `HTTP 401 Credenciales invalidas` en **~234 ms** (tiempo idéntico gracias al hash dummy precalculado).
@@ -317,27 +354,36 @@
 **Commit:** `dc6d9d0`  
 **Prompt:** "Bitacora 4. Calidad de las entradas: Cambié/rechacé en 10 de 14 pasos da la impresión de que no revisaste... Paso 12: contentSecurityPolicy: false desactiva la CSP en toda la API, no solo en Swagger. Es un trade-off consciente, pero debes poder decirlo (y que lo mejor sería relajarla solo en /api-docs)... Rate limit: impleméntalo (umbrales en Config, más altos en .env.test) o bórralo del log. Revisa también que el README no prometa algo que no exista... Commits: no dices quién hizo los pasos 3 a 14. Compara git log --format='%h %ad %s' --date=iso con tus encabezados 'Día 1/2/3'. Restaura la tabla de resumen por día con fechas y hashes."  
 **Acepté:**  
-- Implementación de `express-rate-limit` con `authRateLimiter` en `src/api/middlewares/rate-limit.middleware.ts` protegiendo `/auth/*` (15 min ventana, máx 10 peticiones en producción/dev, 1000 en test).
+- Implementación de `express-rate-limit` con `authRateLimiter` y factory `createAuthRateLimiter` en `src/api/middlewares/rate-limit.middleware.ts` protegiendo `/auth/*` (15 min ventana, máx 10 peticiones en producción/dev, 1000 en test).
 - Variables de entorno en `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`), actualizando `.env.example` y `.env.test.example`.
 - Refactorización de seguridad en `src/app.ts`: Helmet aplica CSP estricto globalmente en todos los endpoints de la API, y un middleware interceptor remueve `Content-Security-Policy` exclusivamente en peticiones hacia `/api-docs` para permitir Swagger UI interactivo sin relajar la protección del resto del sistema.
-- Adición de la prueba de integración número 21 en `tests/integration/auth.test.ts` validando cabeceras `ratelimit-limit` y `ratelimit-remaining`.
+- Adición de pruebas de integración en `tests/integration/auth.test.ts` validando tanto las cabeceras `ratelimit-limit` y `ratelimit-remaining` como la respuesta `HTTP 429 Too Many Requests` ante excesos de peticiones.
 - Auditoría técnica completa y sincronización de `README.md` y `DEVELOPMENT_LOG.md`.  
 **Cambié/rechacé:**  
 - Se rechazó mantener el CSP desactivado globalmente; se implementó el aislamiento granular estricto por ruta.
 - Se rechazaron valores fijos (hardcodeados) de rate limit, canalizando la configuración a través de la clase `Config`.  
+- *Nota sobre atomicidad:* En el commit `dc6d9d0` se agruparon simultáneamente rate limiting, CSP, una prueba de integración, README y bitácora, perdiéndose la estricta atomicidad observada en los pasos previos. Las mejoras de auditoría posteriores (`3806913`, `5db1fd5`, `fc01a95`, `33cdc92`) se desglosaron en commits modulares y atómicos para corregir esta desviación.
 **Verifiqué:**  
 - `npm run typecheck` → `0` errores de compilación TypeScript.
 - `npm run build` → compilación exitosa a `dist/`.
-- `npm test` → 21/21 pruebas aprobadas al 100% en 3.83s:
+- `npm test` → 22/22 pruebas aprobadas al 100%:
   ```
    RUN  v5.0.3 C:/Users/USUARIO/Documents/Proyecto tecnicoo
 
-   ✓ tests/integration/tasks.test.ts (14 tests) 1062ms
-   ✓ tests/integration/auth.test.ts (7 tests) 636ms
+   ✓ tests/integration/tasks.test.ts (14 tests) 868ms
+   ✓ tests/integration/auth.test.ts (8 tests) 647ms
 
    Test Files  2 passed (2)
-        Tests  21 passed (21)
-     Duration  3.83s
+        Tests  22 passed (22)
+     Duration  3.00s
+  ```
+- Verificación de bloqueo 429 por rate limit:
+  Petición 3 excediendo límite (con `max: 2`) → `HTTP/1.1 429 Too Many Requests`, cabecera `ratelimit-remaining: 0` y cuerpo:
+  ```json
+  {
+    "status": "error",
+    "message": "Demasiadas solicitudes desde esta direccion IP, por favor intente nuevamente mas tarde"
+  }
   ```
 - Verificación de cabeceras CSP:  
   `GET /health` → cabecera `Content-Security-Policy` activa.  
@@ -348,14 +394,15 @@
 
 ## Retos y soluciones
 
-1. **Diferencias entre MySQL y PostgreSQL**:  
-   El desarrollo implicó pasar de esquemas previos en MySQL a PostgreSQL. Se adoptaron marcadores parametrizados `$1, $2` (driver `pg`) en lugar de `?`, tipos `SERIAL` en lugar de `AUTO_INCREMENT`, cláusulas `RETURNING` para recuperar filas insertadas/actualizadas atómicamente en una sola consulta, y captura del código nativo `23505` para traducirlo a excepciones de dominio (`ConflictError`).
+1. **Comportamiento de tipos en PostgreSQL y DATE parser**:  
+   *Síntoma:* El driver `pg` parsea por defecto las columnas `DATE` como un objeto `Date` de JavaScript en medianoche local (00:00:00 local). Si ese objeto se convierte a ISO/UTC o se consume en clientes con husos horarios situados al este de UTC, la conversión puede provocar desplazamientos indeseados de un día en el calendario. Además, devolvía una instancia de objeto `Date` en vez de una cadena, rompiendo la coherencia del contrato de la API.  
+   *Solución:* Se registró un parser específico con `types.setTypeParser(types.builtins.DATE, v => v)` que omite la instanciación de objetos `Date` y devuelve directamente la cadena literal `'YYYY-MM-DD'` tal como reside en PostgreSQL.
 2. **Rutas con barras invertidas en Windows para Swagger-JSDoc**:  
    *Síntoma:* Al ejecutar en Windows o compilar a `dist/`, `path.join` generaba barras invertidas `\` que rompían el motor `glob` de `swagger-jsdoc`, resultando en un documento OpenAPI vacío sin rutas.  
    *Solución:* Se normalizaron todas las rutas glob con `.replace(/\\/g, "/")` y se configuró coincidencia para archivos `.ts` y `.js`, asegurando funcionamiento transparente tanto en desarrollo (`src`) como en producción transpilada (`dist`).
 3. **Trade-off de Content Security Policy (CSP) en Helmet con Swagger UI**:  
-   *Síntoma:* La directiva CSP predeterminada de Helmet bloqueaba los scripts y estilos inline del visor de Swagger UI en `/api-docs`.  
-   *Solución:* En lugar de desactivar CSP globalmente en toda la API (lo que habría dejado las rutas REST desprotegidas), se configuró una regla granular: Helmet aplica CSP estricto globalmente y un middleware interceptor remueve la cabecera CSP exclusivamente en las solicitudes a `/api-docs`.
+   *Síntoma:* La directiva CSP predeterminada de Helmet bloqueaba los scripts y estilos inline del visor de Swagger UI en `/api-docs`. Se evaluó deshabilitar CSP globalmente (`contentSecurityPolicy: false`), pero aunque en endpoints REST que devuelven JSON el impacto de CSP es prácticamente nulo (los navegadores no ejecutan scripts al parsear JSON), su verdadero valor reside en proteger contra inyecciones XSS en interfaces HTML navegables.  
+   *Solución:* En lugar de deshabilitar CSP en toda la aplicación, se configuró Helmet de manera granular: CSP estricto se mantiene como política global y un middleware específico remueve la cabecera únicamente en peticiones hacia `/api-docs` para permitir la renderización interactiva de Swagger UI.
 4. **Manejo de valores nulos en esquemas AJV y tipos opcionales de TypeScript**:  
    *Síntoma:* En AJV v8, los campos opcionales no listados en `required` exigen `nullable: true` para satisfacer `JSONSchemaType`, lo cual permitía que un cliente enviara `{ "titulo": null }` o `{ "estado": null }` burlando la validación inicial y generando excepciones no controladas en `trim()`.  
    *Solución:* Se agregaron comprobaciones defensivas en `TaskService` para validar que si `titulo` o `estado` vienen definidos, no sean `null` ni cadenas de solo espacios en blanco, despachando `ValidationError` (HTTP 400).
@@ -371,8 +418,10 @@ Esta sección tiene dos partes. Solo la segunda cuenta como decisión propia.
 
 ### A. Decisiones informadas por IA que adopté y puedo defender
 
-1. **404 en lugar de 403 para tareas ajenas.**  
-   *¿Qué pasaría con 403?* Un código `403 Forbidden` confirmaría al cliente que la tarea con ese ID sí existe en la base de datos, aunque pertenezca a otra persona. Esto habilitaría ataques de enumeración (IDOR) donde un atacante prueba IDs sucesivos para descubrir qué recursos existen en el sistema. Al devolver uniformemente `404 Not Found` ("Tarea no encontrada"), la respuesta es indistinguible entre una tarea inexistente y una tarea ajena, protegiendo la privacidad de los usuarios.
+*(Redacción y contraste conceptual de esta subsección apoyados por Claude)*
+
+1. **404 en lugar de 403 para tareas ajenas (mitigación combinada de IDOR y enumeración de recursos).**  
+   *¿Qué pasaría con 403?* Un código `403 Forbidden` confirmaría al cliente que la tarea con ese ID sí existe en la base de datos, aunque pertenezca a otra persona. Si un atacante manipula el parámetro `:id` (vector de ataque de IDOR), un código 403 le permitiría llevar a cabo un ataque de enumeración, deduciendo qué IDs existen realmente en el sistema. Al devolver uniformemente `404 Not Found` ("Tarea no encontrada"), la respuesta es indistinguible entre una tarea inexistente y una tarea ajena, protegiendo tanto contra el acceso no autorizado como contra la fuga de metadatos de existencia.
 2. **Singleton de configuración con fail-fast.**  
    *¿Qué pasaría si no fallara al arrancar?* La aplicación podría iniciar con variables críticas ausentes (como un `JWT_SECRET` vacío o credenciales de base de datos incompletas) y fallar inesperadamente en medio de una petición de un usuario en producción. Con el patrón fail-fast, si falta alguna variable o no cumple el formato esperado, el proceso aborta inmediatamente en el arranque con un mensaje claro, evitando estados inconsistentes o vulnerabilidades silenciosas.
 3. **Filtrar siempre por `user_id` en el repositorio (`WHERE id = $1 AND user_id = $2`).**  
@@ -386,3 +435,4 @@ Esta sección tiene dos partes. Solo la segunda cuenta como decisión propia.
 - **¿Se permite una `fecha_vencimiento` en el pasado?**: Sí se permite. Un usuario puede necesitar registrar una tarea que venció antes de ser introducida en el sistema para mantener un registro histórico completo de pendientes.
 - **¿`estado` es opcional al crear una tarea (por defecto `'pendiente'`)?**: Sí, es opcional en la creación. Si el usuario no envía el estado, el servicio le asigna automáticamente `'pendiente'`. Esto simplifica la carga útil requerida para crear tareas rápidas (bastando únicamente el título) y sigue el ciclo natural de vida de una tarea.
 - **Umbrales del rate limit en `/auth/*`**: Implementado con `express-rate-limit` protegiendo `/auth/*` con ventana de 15 minutos (900000ms) y límite de 10 peticiones en producción/desarrollo, configurable mediante `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`), con umbral elevado a 1000 en entorno de test para garantizar que no bloquee las pruebas automatizadas.
+
