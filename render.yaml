@@ -12,8 +12,8 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build && node dist/persistence/init-db.js
-    startCommand: npm start
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: node dist/persistence/init-db.js && node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
