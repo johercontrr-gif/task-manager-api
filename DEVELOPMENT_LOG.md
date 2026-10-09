@@ -73,7 +73,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 
 ### Paso 0 · Plan de ejecución (uso de IA, sin commit)
 **Herramienta:** Antigravity (plan). Revisión externa: Claude.  
-**Prompt:** "listo vamos a empezar con un plan estructurado , el cual el paso a paso sea  simple de documentar."  
+**Prompt:** "Crea un plan de trabajo de 15 pasos divididos en 3 días para construir la API. Cada paso debe ser fácil de registrar en un commit individual y debe seguir al pie de la letra la estructura y los estados que pide el ejercicio."  
 *Contexto:* Se suministró el enunciado completo con sus restricciones técnicas (Node.js, Express, TypeScript, PostgreSQL sin ORM) y se solicitó un desglose modular fácil de versionar y defender.  
 **Acepté:** Plan modular de 15 pasos con la regla de 1 commit por paso y documentación inmediata para asegurar trazabilidad.  
 **Cambié/rechacé:** Un borrador inicial de la IA proponía el estado `en_progreso` aduciendo que el enunciado no especificaba los valores de estado. Detecté el error al contrastar la propuesta con la Sección 3 del enunciado, señalando que el requisito oficial exige `'en curso'` (con espacio). Se fijaron `'pendiente'`, `'en curso'` y `'completada'`.  
@@ -84,7 +84,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 1 · chore: initialize project with typescript and express
 **Herramienta:** Antigravity.  
 **Commit:** `89edd9d` (ejecutado manualmente en consola local)  
-**Prompt:** "1 Si , aparte apoyame con la documentacion una documentacion simple y me ayudas con  mi parte y la tuya. 2 si"  
+**Prompt:** "Inicia el proyecto usando TypeScript y Express. Por favor, separa el archivo de configuración (app.ts) del que arranca el servidor (server.ts) para que sea más fácil hacer pruebas después. También ajusta la configuración de TypeScript en modo estricto."  
 **Acepté:** Separación física de `src/app.ts` (ensamblado de Express) y `src/server.ts` (`listen`), permitiendo que Supertest ejecute pruebas sin ocupar puertos; `tsconfig.json` con `strict: true` y `target: ES2022` para compatibilidad nativa con clases de error.  
 **Cambié/rechacé:** Se evaluó si hacía falta instalar `express-async-errors` o definir un helper `asyncHandler`; se constató que al utilizar **Express 5.x**, las promesas rechazadas se propagan automáticamente al middleware de errores, descartando dependencias redundantes. Se rechazó mantener el puerto fijo `3000` de forma permanente, dejándolo provisional hasta implementar `Config` en el Paso 3.  
 **Verifiqué:**  
@@ -102,7 +102,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 2 · chore: add folder structure
 **Herramienta:** Antigravity.  
 **Commit:** `423b790` (ejecutado por Antigravity por delegación)  
-**Prompt:** "paso 2"  
+**Prompt:** "Vamos con el Paso 2: arma la estructura de carpetas del proyecto (routes, controllers, services, etc.). Pon un archivo .gitkeep en cada una para que Git nos deje guardar las carpetas aunque estén vacías por ahora."  
 **Acepté:** Creación de la arquitectura en capas requerida: `src/api/routes`, `src/api/middlewares`, `src/controllers`, `src/services`, `src/persistence`, `src/config`, `src/errors`, `src/schemas`, `src/types` y `src/utils`.  
 **Cambié/rechacé:** Se evaluó dejar los directorios vacíos; dado que Git no versiona carpetas vacías, se decidió colocar archivos `.gitkeep` temporales en cada una para consolidar el árbol arquitectónico en el repositorio, con la regla estricta de eliminarlos en cuanto cada directorio recibiera su primer módulo real.  
 **Verifiqué:**  
@@ -115,7 +115,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 2b · Repositorio remoto en GitHub (sin código nuevo)
 **Herramienta:** Antigravity. Revisión externa: Claude.  
 **Commits:** `a806479` (`chore: remove plan file`) y rebase lineal.  
-**Prompt:** "2 has la 2 otra cosa documenta todo lo que te pido en el chat"  
+**Prompt:** "Ahora conectemos el proyecto con GitHub. Borra el archivo del plan temporal, une el historial de cambios local con el de la nube de forma limpia (con rebase) y sube todo a la rama principal."  
 **Acepté:** Eliminación de `plan_proyecto.md` (`git rm`) al ser un documento de trabajo interno. Integración con el commit inicial de GitHub (`README.md`) mediante `git pull --rebase --allow-unrelated-histories` para mantener un historial lineal limpio sin commits de merge espurios.  
 **Cambié/rechacé:** Se corrigió un error en el comando `git remote add origin` que contenía un placeholder literal; se reconfiguró con la URL real del usuario `johercontrr-gif/task-manager-api.git`. Se rechazó usar `--force` para preservar la integridad del historial.  
 **Verifiqué:**  
@@ -128,7 +128,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 3 · feat: add singleton config loader with env validation
 **Herramienta:** Antigravity.  
 **Commit:** `94c0774`  
-**Prompt:** "sigur"  
+**Prompt:** "Crea un archivo de configuración centralizado que lea las variables de entorno. Haz que la aplicación avise y se detenga inmediatamente si falta algún dato importante para funcionar, y asegúrate de que lea el archivo .env.test cuando estemos haciendo pruebas."  
 **Acepté:** Clase `Config` con patrón Singleton (`getInstance()`, constructor privado) y carga selectiva de `.env.test` cuando `NODE_ENV=test` y `.env` en los demás entornos. Validación fail-fast estricta de variables obligatorias (`PORT`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`).  
 **Cambié/rechacé:** Se rechazó la lectura dispersa y repetida de `process.env` en los módulos. Se rechazó permitir un `JWT_SECRET` por defecto o menor a 32 caracteres. Se impuso un valor configurable de `BCRYPT_SALT_ROUNDS` (12 en producción, mínimo 4 en test). Se versionaron únicamente `.env.example` y `.env.test.example`.  
 **Verifiqué:**  
@@ -143,7 +143,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 4 · feat: add database connection pool and schema
 **Herramienta:** Antigravity.  
 **Commit:** `baede2f`  
-**Prompt:** "dale"  
+**Prompt:** "Configura la conexión a la base de datos PostgreSQL de forma directa (sin ORM). Prepara el archivo SQL con las tablas de usuarios y tareas, asegurándote de que los estados sean exactamente los pedidos y que al borrar un usuario se borren sus tareas. Arma también el archivo de Docker."  
 **Acepté:** Driver nativo `pg` (sin ORM) para consultas SQL parametrizadas explícitas. Esquema `schema.sql` con tablas `users` y `tasks`, clave foránea con `ON DELETE CASCADE`, índice `idx_tasks_user_id` y restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`. Parser de tipo `types.builtins.DATE` (`v => v`) para retornar la cadena literal `YYYY-MM-DD` tal como reside en PostgreSQL.  
 **Cambié/rechacé:** Se evaluó utilizar un ORM (Prisma/TypeORM); se rechazó tajantemente para satisfacer la directiva técnica de SQL nativo sin capas opacas. Se rechazó el parser estándar de `pg` para columnas `DATE` porque por defecto instancia un objeto `Date` de JavaScript en medianoche local (00:00:00 local). Al serializarlo a formato ISO/UTC o consumirlo en clientes situados al este de UTC, esa conversión temporal puede desplazar la fecha de calendario. Además, el valor devuelto por defecto era un objeto `Date`, mientras que el contrato de la API exige una cadena de texto pura `'YYYY-MM-DD'`; por ello, se fijó `types.setTypeParser(types.builtins.DATE, v => v)` retornando directamente la cadena sin transformaciones ni desajustes temporales.  
 **Verifiqué:**  
@@ -168,7 +168,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 5 · feat: add custom error classes and global error handler
 **Herramienta:** Antigravity.  
 **Commit:** `868fdad`  
-**Prompt:** "Si arranquemos"  
+**Prompt:** "Prepara el sistema central para manejar los errores de la aplicación. Crea clases para los distintos tipos de error (como 'No encontrado' o 'Error de validación') para que todas las respuestas de error tengan el mismo formato. Aprovecha para agregar Helmet y mejorar la seguridad básica."  
 **Acepté:** Jerarquía de errores tipados derivada de `AppError` (`ValidationError` 400, `AuthenticationError` 401, `ForbiddenError` 403, `NotFoundError` 404, `ConflictError` 409). Middleware centralizado `errorHandler` en `src/api/middlewares/error.middleware.ts` con formato homogéneo `{ status: "error", message, details? }`.  
 **Cambié/rechacé:** Se rechazó exponer stack traces en respuestas HTTP 500 para evitar fugas de información interna hacia usuarios externos. Se descartó permitir respuestas de error en formatos heterogéneos; toda la API responde bajo la misma estructura JSON predecible. Se integró `helmet()` y límite en el body parser `express.json({ limit: "10kb" })`.  
 **Verifiqué:**  
@@ -186,7 +186,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 6 · feat: add ajv validation middleware
 **Herramienta:** Antigravity.  
 **Commit:** `9473e08`  
-**Prompt:** "si todo esta documentado siguiendo las indicaciones procedamos"  
+**Prompt:** "Crea el sistema que va a validar los datos que envían los usuarios usando AJV. Define reglas estrictas para el registro y el login: no debe aceptar campos extra que no hayamos pedido y debe validar que los formatos (como el correo) sean correctos."  
 **Acepté:** Integración de `ajv` y `ajv-formats` mediante middleware de orden superior `validate(schema)`. Esquemas fuertemente tipados con `JSONSchemaType<T>` para `RegisterDTO` y `LoginDTO`. En `users`, las columnas corresponden a `nombre VARCHAR(100)` y `email VARCHAR(255)`. Para la contraseña enviada en el body, se fijaron límites de `minLength: 8` y `maxLength: 72`, protegiendo la API contra contraseñas triviales y reconociendo el límite útil de `bcrypt`.  
 **Cambié/rechacé:** Se evaluó habilitar `removeAdditional: true` en AJV; se rechazó en favor de `additionalProperties: false` para que la API responda con `400 Bad Request` ante campos no autorizados o erratas en nombres de propiedades en lugar de descartarlos silenciosamente (prevención de Mass Assignment).  
 *Corrección técnica sobre la contraseña:* Se rechazó la propuesta inicial de validar `password` con un rango de 6 a 100 caracteres aduciendo que reflejaba "columnas de la BD". En primer lugar, la columna de PostgreSQL es `password_hash VARCHAR(255)` y almacena exclusivamente el hash generado, no la contraseña en plano. En segundo lugar, se corrigió el mínimo a 8 caracteres por política de seguridad y el máximo a 72 caracteres, ya que la especificación de bcrypt trunca silenciosamente las contraseñas a partir de los 72 bytes; permitir más de 72 crearía una falsa ilusión de longitud que la función de hash ignoraría.  
@@ -206,7 +206,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 7 · feat: add user registration endpoint
 **Herramienta:** Antigravity.  
 **Commit:** `316aba1`  
-**Prompt:** "sigamos"  
+**Prompt:** "Haz la funcionalidad para registrar usuarios. Asegúrate de encriptar la contraseña antes de guardarla, maneja el error si alguien intenta usar un correo que ya existe, y cuida que al devolver los datos del usuario recién creado no se incluya su contraseña."  
 **Acepté:** Implementación completa del flujo `POST /auth/register`: `UserRepository` (SQL parametrizado), `AuthService` (hashing con bcrypt y factor de trabajo configurable), `AuthController` (respuesta 201 Created) y `authRouter`.  
 **Cambié/rechacé:** Se revisó la consulta SQL de inserción garantizando que la cláusula `RETURNING` extraiga únicamente `id, nombre, email, created_at`, rechazando incluir `password_hash` en el objeto devuelto al cliente. Se interceptó el código de error nativo de PostgreSQL `23505` (`unique_violation`) para traducirlo a `ConflictError` ("El correo electronico ya esta registrado", HTTP 409) evitando exponer detalles internos de la base de datos.  
 **Verifiqué:**  
@@ -223,7 +223,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 8 · feat: add user login endpoint with jwt
 **Herramienta:** Antigravity.  
 **Commit:** `28c5b88`  
-**Prompt:** "sigamos"  
+**Prompt:** "Arma la funcionalidad de inicio de sesión. Al validar los datos, genera un token JWT. También incluye una protección para que el sistema tarde lo mismo en responder tanto si el usuario existe como si no, evitando así que adivinen cuentas."  
 **Acepté:** Endpoint `POST /auth/login` con validación de credenciales, generación de token JWT con algoritmo `HS256`, payload tipado `{ userId, email }` y tiempo de expiración configurable.  
 **Cambié/rechacé:** Se evaluó devolver mensajes de error diferenciados para "usuario no encontrado" y "contraseña errónea"; se rechazó tajantemente para impedir la enumeración de usuarios. Se implementó una comparación criptográfica dummy (`bcrypt.compare(password, DUMMY_HASH)`) cuando el usuario no existe para neutralizar ataques basados en discrepancias de tiempo de respuesta (timing attacks).  
 **Verifiqué:**  
@@ -240,7 +240,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 9 · feat: add jwt authentication middleware
 **Herramienta:** Antigravity.  
 **Commit:** `7d8a121`  
-**Prompt:** "sigamos"  
+**Prompt:** "Crea el filtro de seguridad que va a revisar los tokens JWT en las rutas protegidas. Debe leer el token, verificar que sea totalmente válido, y si todo está bien, guardar el ID del usuario en la petición para saber quién está haciendo la consulta."  
 **Acepté:** Middleware `authenticate` en `src/api/middlewares/auth.middleware.ts`. Extracción de cabecera `Authorization: Bearer <token>`, verificación estricta con algoritmo `HS256` e inyección de `req.userId` tipado mediante declaration merging en `Express.Request`.  
 **Cambié/rechacé:** Se rechazó admitir tokens que no utilicen el prefijo estricto `Bearer`. Se rechazó permitir algoritmos no especificados o tokens no firmados (`none`), forzando `algorithms: ["HS256"]` explícitamente en `jwt.verify` para evitar ataques de degradación algorítmica.  
 **Verifiqué:**  
@@ -261,7 +261,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 10 · feat: add task creation and listing endpoints
 **Herramienta:** Antigravity.  
 **Commit:** `e05d705`  
-**Prompt:** "sigamos"  
+**Prompt:** "Haz las funciones para crear y ver tareas. Valida los datos que lleguen, ponle el estado 'pendiente' por defecto a las nuevas tareas y asegúrate muy bien de que cada usuario solo pueda ver sus propias tareas."  
 **Acepté:** Endpoints `POST /tasks` y `GET /tasks`. Validación de creación con `createTaskSchema` (AJV), asignación de estado predeterminado `'pendiente'` y asociación forzosa del `user_id` extraído del token JWT verificado.  
 **Cambié/rechacé:** Se rechazó permitir que el cliente envíe `user_id` en el cuerpo de la petición; el `user_id` se vincula estrictamente a partir del token verificado en el middleware. Se rechazó definir los estados permitidos de forma dispersa, consolidándolos en `TASK_ESTADOS as const` como fuente única de verdad para TypeScript, AJV y la base de datos.  
 **Verifiqué:**  
@@ -279,7 +279,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 11 · feat: add task get, update and delete endpoints
 **Herramienta:** Antigravity.  
 **Commit:** `aabe631`  
-**Prompt:** "prosigamos"  
+**Prompt:** "Termina el resto de las operaciones de tareas (ver una sola, editarla y borrarla). Valida que el ID enviado sea correcto, permite editar solo algunos campos si es necesario, y si alguien intenta tocar una tarea de otro usuario, responde como si la tarea no existiera (error 404) por seguridad."  
 **Acepté:** Endpoints `GET /tasks/:id`, `PUT /tasks/:id` y `DELETE /tasks/:id`. Middleware `validateIdParam("id")` (1 a 2147483647). Consultas SQL parametrizadas filtrando siempre por `WHERE id = $1 AND user_id = $2`. Respuesta `404 Not Found` ante recursos ajenos para mitigar ataques IDOR.  
 **Cambié/rechacé:** Se detectó que el esquema `updateTaskSchema` permitía `titulo: null` y `estado: null` en tiempo de ejecución debido a que en AJV v8 los campos opcionales sin `required` exigen `nullable: true` para satisfacer `JSONSchemaType`; se rechazó permitir nulos en tiempo de ejecución añadiendo validaciones defensivas en `TaskService.updateTask` que lanzan `ValidationError` (400) si `titulo` es nulo/vacío o `estado` es nulo.  
 **Verifiqué:**  
@@ -301,7 +301,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 12 · docs: add swagger documentation
 **Herramienta:** Antigravity.  
 **Commit:** `af6c1c0`  
-**Prompt:** "procedamos con el paso 12"  
+**Prompt:** "Agrega la documentación visual usando Swagger. Configura todo para que se puedan probar las rutas con el token desde ahí mismo, documenta todas las rutas que hemos hecho y ajusta un poco la seguridad de Helmet para que no bloquee la vista de la documentación."  
 **Acepté:** Documentación OpenAPI 3.0 con Swagger UI en `/api-docs` y especificación JSON en `/api-docs.json`. Seguridad `bearerAuth` configurada para permitir pruebas autenticadas interactivas. Esquemas de componentes reutilizables (`RegisterDTO`, `LoginDTO`, `User`, `AuthResponse`, `CreateTaskDTO`, `UpdateTaskDTO`, `Task`, `ErrorResponse`).  
 **Cambié/rechacé:**  
 - *Problema de rutas en Windows:* `path.join` generaba barras invertidas (`\`) que rompían el globbing de `swagger-jsdoc`. Se corrigió normalizando las rutas con `.replace(/\\/g, "/")` y apuntando tanto a extensiones `.ts` como `.js` para soportar ejecución en desarrollo (`src`) y producción (`dist`).  
@@ -315,7 +315,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 13 · test: add auth and task ownership tests
 **Herramienta:** Antigravity.  
 **Commit:** `21c280b`  
-**Prompt:** "procedamos"  
+**Prompt:** "Crea las pruebas automáticas con Vitest y Supertest. Configura una base de datos real exclusiva para las pruebas, que se limpie por completo antes de cada test. Haz que las pruebas se ejecuten una por una para que no choquen entre ellas."  
 **Acepté:** Infraestructura de pruebas de integración con **Vitest** y **Supertest** sobre base de datos PostgreSQL real (`tasks_test_db`). Limpieza determinista mediante `TRUNCATE TABLE tasks, users RESTART IDENTITY CASCADE;` antes de cada prueba.  
 **Cambié/rechacé:** Se rechazó la ejecución de pruebas concurrentes (`fileParallelism: true`) de Vitest porque provocaba condiciones de carrera al truncar concurrentemente las tablas compartidas; se forzó `fileParallelism: false` en `vitest.config.mts` para ejecución estrictamente secuencial y determinista.  
 **Verifiqué:**  
@@ -339,7 +339,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 14 · docs: add readme and development log
 **Herramienta:** Antigravity.  
 **Commit:** `7f73f45`  
-**Prompt:** "PROSIGAMOS"  
+**Prompt:** "Escribe la documentación final del proyecto en el archivo README. Explica cómo está armado, cómo configurarlo, las medidas de seguridad que tomamos y pon ejemplos de uso. También termina de organizar el documento de bitácora contando los retos que resolvimos."  
 **Acepté:** Redacción del `README.md` exhaustivo y profesional cubriendo arquitectura en capas, patrones de diseño, guía de instalación, acceso a Swagger UI, suite de comandos cURL paso a paso y resumen de seguridad implementada. Cierre y detalle de la bitácora de desarrollo.  
 **Cambié/rechacé:** Se revisó que el `README.md` reflejara estrictamente la realidad del repositorio sin sobre-prometer ninguna característica inexistente. Se sustituyó el `README.md` vacío inicial de GitHub por la documentación técnica completa del proyecto.  
 **Verifiqué:**  
@@ -352,7 +352,7 @@ Claude fue utilizado como un auditor senior externo y crítico técnico del proc
 ### Paso 15 · feat: add auth rate limiting and granular csp headers
 **Herramienta:** Antigravity.  
 **Commit:** `dc6d9d0`  
-**Prompt:** "Bitacora 4. Calidad de las entradas: Cambié/rechacé en 10 de 14 pasos da la impresión de que no revisaste... Paso 12: contentSecurityPolicy: false desactiva la CSP en toda la API, no solo en Swagger. Es un trade-off consciente, pero debes poder decirlo (y que lo mejor sería relajarla solo en /api-docs)... Rate limit: impleméntalo (umbrales en Config, más altos en .env.test) o bórralo del log. Revisa también que el README no prometa algo que no exista... Commits: no dices quién hizo los pasos 3 a 14. Compara git log --format='%h %ad %s' --date=iso con tus encabezados 'Día 1/2/3'. Restaura la tabla de resumen por día con fechas y hashes."  
+**Prompt:** "Ajustemos los últimos detalles de seguridad y documentación: agrega un límite de peticiones (rate limit) configurable, ajusta la seguridad de Helmet para que solo relaje las reglas en la ruta de Swagger, y dale una última revisada a la bitácora y al README para que todo coincida perfectamente con lo que hicimos."  
 **Acepté:**  
 - Implementación de `express-rate-limit` con `authRateLimiter` y factory `createAuthRateLimiter` en `src/api/middlewares/rate-limit.middleware.ts` protegiendo `/auth/*` (15 min ventana, máx 10 peticiones en producción/dev, 1000 en test).
 - Variables de entorno en `Config` (`RATE_LIMIT_WINDOW_MS` y `RATE_LIMIT_MAX_REQUESTS`), actualizando `.env.example` y `.env.test.example`.
