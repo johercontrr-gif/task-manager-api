@@ -155,6 +155,31 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
 - `npm run typecheck` → terminó sin errores.
 - Pruebas de flujo: normalización de email a minúsculas y trim de nombre, hashing de contraseña con bcrypt verificado con `bcrypt.compare`, exclusión de `password_hash` en el objeto devuelto y traducción de error PostgreSQL `23505` a `ConflictError` (HTTP 409).
 
+### Paso 8 · feat: add user login endpoint with jwt
+**Herramienta:** Antigravity.
+**Commit:** `28c5b88`
+**Prompt:** "sigamos"
+**Contexto:** desarrollo del Paso 8 del plan (endpoint `POST /auth/login` con validación de credenciales, protección contra timing attacks mediante hash dummy y generación de tokens JWT con algoritmo HS256).
+**Acepté:**
+- Instalación de `jsonwebtoken` y `@types/jsonwebtoken` para la generación y firma de tokens JWT.
+- Incorporación de tipos `AuthResponse` y `JwtPayload` en `src/types/user.types.ts` con `userId` y `email`.
+- Implementación de método `login` en `src/services/auth.service.ts`:
+  - Normalización de correo a minúsculas y sin espacios.
+  - Mitigación de timing attacks / enumeración de usuarios: si el usuario no existe en la base de datos, se ejecuta igualmente `bcrypt.compare` contra un `DUMMY_HASH` precalculado con coste 12, manteniendo el tiempo de respuesta uniforme.
+  - Mensaje genérico de error de autenticación: tanto para usuario inexistente como para contraseña incorrecta se lanza `AuthenticationError` ("Credenciales invalidas", HTTP 401).
+  - Firma explícita del token JWT con algoritmo `HS256`, clave secreta validada de `Config` y tiempo de expiración configurable (`jwtExpiresIn`).
+  - Retorno de token y objeto de usuario seguro (sin `password_hash`).
+- Implementación del controlador `login` en `src/controllers/auth.controller.ts` respondiendo HTTP 200 OK con `{ status: "success", data: { token, user } }`.
+- Configuración de la ruta `POST /login` en `src/api/routes/auth.routes.ts` validada con `validate(loginSchema)` (AJV).
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm ls jsonwebtoken --depth=0` → `jsonwebtoken@9.0.3`.
+- `npm run typecheck` → terminó sin errores.
+- Pruebas de flujo de login:
+  - Login exitoso con credenciales válidas generando token JWT con cabecera `alg: HS256` y payload decodificable `{ userId, email }`.
+  - Rechazo de contraseña inválida con HTTP 401 y mensaje "Credenciales invalidas".
+  - Rechazo de usuario inexistente con HTTP 401 y tiempo de respuesta equiparable (~235ms) gracias a la comparación contra el hash dummy.
+
 ---
 
 ## Retos y soluciones
