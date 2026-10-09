@@ -321,6 +321,38 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
   - `GET /api-docs.json` responde HTTP 200 OK con la especificación completa en formato JSON.
   - `GET /api-docs/` responde HTTP 200 OK con el documento HTML interactivo de Swagger UI.
 
+### Paso 13 · test: add auth and task ownership tests
+**Herramienta:** Antigravity.
+**Commit:** `21c280b`
+**Prompt:** "procedamos"
+**Contexto:** desarrollo del Paso 13 del plan (pruebas automatizadas de integración extremo a extremo con Vitest y Supertest, base de datos de pruebas PostgreSQL real, limpieza con `TRUNCATE` entre pruebas, aislamiento `fileParallelism: false` y cobertura de los casos de uso principales y control de propiedad).
+**Acepté:**
+- Instalación de `vitest`, `supertest` y `@types/supertest`.
+- Configuración de Vitest en `vitest.config.mts` con entorno `node`, `fileParallelism: false` (para prevenir carreras en base de datos compartida) y timeouts adecuados.
+- Helper de base de datos en `tests/helpers/db.helper.ts`:
+  - `initializeTestDb()`: aplica `schema.sql` en la base de datos de pruebas `tasks_test_db`.
+  - `cleanDb()`: ejecuta `TRUNCATE TABLE tasks, users RESTART IDENTITY CASCADE;` antes de cada prueba para garantizar determinismo e independencia.
+- Batería de pruebas de autenticación en `tests/integration/auth.test.ts` (6 pruebas):
+  - `POST /auth/register`: creación exitosa (201 Created), omisión de `password_hash`, rechazo de campos inválidos/faltantes (400), y rechazo de correos duplicados (409 Conflict).
+  - `POST /auth/login`: login exitoso con emisión de JWT (200 OK), rechazo de contraseña incorrecta (401), y rechazo de correo no registrado (401).
+- Batería de pruebas de tareas y aislamiento de propiedad en `tests/integration/tasks.test.ts` (14 pruebas):
+  - Seguridad transversal: rechazo con 401 en todas las rutas de tareas al omitir el header de autorización Bearer.
+  - Creación (`POST /tasks`): creación completa con todos los campos, asignación por defecto a `'pendiente'`, rechazo de título vacío (400) y rechazo de estado inválido como `'en_progreso'` (400).
+  - Listado (`GET /tasks`): aislamiento estricto (Usuario 1 solo recibe sus tareas y Usuario 2 solo las suyas).
+  - Consulta por ID (`GET /tasks/:id`): retorno 200 OK para la tarea propia, respuesta 404 Not Found cuando un usuario intenta consultar la tarea privada de otro usuario (mitigación de IDOR), y respuesta 400 ante parámetros de ruta no numéricos o cero.
+  - Actualización (`PUT /tasks/:id`): modificación parcial exitosa de tarea propia (200 OK), rechazo con 404 Not Found ante intentos de modificación de tareas de otros usuarios (mitigación de IDOR), y rechazo con 400 ante cuerpo vacío.
+  - Eliminación (`DELETE /tasks/:id`): rechazo con 404 Not Found ante intentos de borrado de tareas ajenas, y eliminación confirmada de tarea propia con verificación de inaccesibilidad posterior (404).
+- Creación de base de datos `tasks_db` y `tasks_test_db` en el motor local PostgreSQL 18 con credenciales locales seguras en `.env` y `.env.test`.
+**Cambié/rechacé:**
+- Se configuró `vitest.config.mts` (extensión ESM explícita) para evitar advertencias de compatibilidad entre CommonJS y el loader nativo de Vite.
+- Se configuró `fileParallelism: false` para que las suites de pruebas se ejecuten secuencialmente y no compitan por el estado de las tablas truncadas.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- `npm run build` (`tsc`) → compiló exitosamente a `dist/`.
+- `npm test` (`vitest run`):
+  - 2 archivos de prueba ejecutados (`tests/integration/tasks.test.ts`, `tests/integration/auth.test.ts`).
+  - 20 pruebas ejecutadas y aprobadas al 100% (20 passed) en 2.89s.
+
 ---
 
 ## Retos y soluciones
