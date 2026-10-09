@@ -2,6 +2,9 @@
 
 API REST modular y segura para la gestión de usuarios y tareas personales, desarrollada con **Node.js**, **Express 5**, **TypeScript**, **PostgreSQL** y documentada con **OpenAPI 3.0 / Swagger**.
 
+- 🌐 **Swagger UI en Vivo (Producción):** [https://task-manager-api-m4na.onrender.com/api-docs](https://task-manager-api-m4na.onrender.com/api-docs)
+- 🏥 **Estado Operacional (Health Check):** [https://task-manager-api-m4na.onrender.com/health](https://task-manager-api-m4na.onrender.com/health)
+
 Para consultar la trazabilidad del desarrollo, decisiones arquitectónicas y la bitácora paso a paso, revisa el archivo [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md).
 
 ---
@@ -351,6 +354,11 @@ curl -X DELETE http://localhost:3000/tasks/1 \
 ---
 
 ## Despliegue en la Nube (Render)
+
+La API y su base de datos PostgreSQL se encuentran actualmente desplegadas y en línea en **Render**:
+
+- 🌐 **URL Pública / Swagger UI:** [https://task-manager-api-m4na.onrender.com/api-docs](https://task-manager-api-m4na.onrender.com/api-docs)
+- 🏥 **Health Check:** [https://task-manager-api-m4na.onrender.com/health](https://task-manager-api-m4na.onrender.com/health)
 
 El proyecto incluye configuración de **Infrastructure as Code** lista para desplegar en [Render](https://render.com) mediante el archivo `render.yaml`.
 

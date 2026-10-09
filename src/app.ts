@@ -45,6 +45,11 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+// Redireccion de la raiz hacia la documentacion interactiva Swagger
+app.get("/", (_req, res) => {
+  res.redirect("/api-docs");
+});
+
 // Documentacion interactiva con Swagger UI:
 // Se relaja la cabecera Content-Security-Policy exclusivamente en /api-docs para permitir
 // la ejecucion de scripts y estilos inline del visor, manteniendo CSP estricto en el resto de la API.
