@@ -52,3 +52,40 @@ export function validate(schema: AnySchema) {
     next();
   };
 }
+
+/**
+ * Middleware para validar que un parametro de ruta (por defecto 'id')
+ * sea un numero entero positivo dentro del rango valido de PostgreSQL SERIAL (1 a 2147483647).
+ */
+export function validateIdParam(paramName: string = "id") {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    const rawValue = req.params[paramName];
+
+    if (typeof rawValue !== "string" || !/^\d+$/.test(rawValue)) {
+      next(
+        new ValidationError(`El parametro '${paramName}' debe ser un numero entero positivo valido`, [
+          {
+            field: paramName,
+            message: `El parametro '${paramName}' debe ser un numero entero positivo`,
+          },
+        ])
+      );
+      return;
+    }
+
+    const parsed = Number(rawValue);
+    if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > 2147483647) {
+      next(
+        new ValidationError(`El parametro '${paramName}' esta fuera del rango permitido (1 a 2147483647)`, [
+          {
+            field: paramName,
+            message: `El parametro '${paramName}' debe estar entre 1 y 2147483647`,
+          },
+        ])
+      );
+      return;
+    }
+
+    next();
+  };
+}

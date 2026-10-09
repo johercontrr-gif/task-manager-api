@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { taskService, TaskService } from "../services/task.service";
-import { CreateTaskDTO } from "../schemas/task.schema";
+import { CreateTaskDTO, UpdateTaskDTO } from "../schemas/task.schema";
 
 /**
  * Controlador para los endpoints de gestion de tareas.
@@ -38,6 +38,55 @@ export class TaskController {
     res.status(200).json({
       status: "success",
       data: tasks,
+    });
+  };
+
+  /**
+   * GET /tasks/:id
+   * Obtiene una tarea especifica por su identificador.
+   * Responde 200 OK con la tarea solicitada.
+   */
+  getById = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId!;
+    const taskId = Number(req.params.id);
+    const task = await this.taskServ.getTaskById(userId, taskId);
+
+    res.status(200).json({
+      status: "success",
+      data: task,
+    });
+  };
+
+  /**
+   * PUT /tasks/:id
+   * Actualiza parcialmente una tarea perteneciente al usuario autenticado.
+   * Responde 200 OK con los datos actualizados de la tarea.
+   */
+  update = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId!;
+    const taskId = Number(req.params.id);
+    const data: UpdateTaskDTO = req.body;
+    const updatedTask = await this.taskServ.updateTask(userId, taskId, data);
+
+    res.status(200).json({
+      status: "success",
+      data: updatedTask,
+    });
+  };
+
+  /**
+   * DELETE /tasks/:id
+   * Elimina una tarea perteneciente al usuario autenticado.
+   * Responde 200 OK confirmando la eliminacion.
+   */
+  delete = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId!;
+    const taskId = Number(req.params.id);
+    await this.taskServ.deleteTask(userId, taskId);
+
+    res.status(200).json({
+      status: "success",
+      message: "Tarea eliminada exitosamente",
     });
   };
 }

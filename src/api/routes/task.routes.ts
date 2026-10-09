@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/auth.middleware";
-import { validate } from "../middlewares/validate.middleware";
-import { createTaskSchema } from "../../schemas/task.schema";
+import { validate, validateIdParam } from "../middlewares/validate.middleware";
+import { createTaskSchema, updateTaskSchema } from "../../schemas/task.schema";
 import { taskController } from "../../controllers/task.controller";
 
 /**
@@ -18,5 +18,14 @@ taskRouter.post("/", validate(createTaskSchema), taskController.create);
 
 // GET /tasks - Listar todas las tareas del usuario autenticado
 taskRouter.get("/", taskController.getAll);
+
+// GET /tasks/:id - Obtener el detalle de una tarea por ID
+taskRouter.get("/:id", validateIdParam("id"), taskController.getById);
+
+// PUT /tasks/:id - Actualizar parcialmente una tarea por ID
+taskRouter.put("/:id", validateIdParam("id"), validate(updateTaskSchema), taskController.update);
+
+// DELETE /tasks/:id - Eliminar una tarea por ID
+taskRouter.delete("/:id", validateIdParam("id"), taskController.delete);
 
 export default taskRouter;
