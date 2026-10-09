@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import { errorHandler, notFoundHandler } from "./api/middlewares/error.middleware";
+import authRouter from "./api/routes/auth.routes";
 
 /**
  * Configuracion de la aplicacion Express.
@@ -20,6 +21,9 @@ app.use(express.json({ limit: "10kb" }));
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// Rutas de autenticacion
+app.use("/auth", authRouter);
 
 // Manejador para rutas inexistentes (404)
 app.use(notFoundHandler);
