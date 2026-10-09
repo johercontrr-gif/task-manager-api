@@ -286,6 +286,41 @@ Contexto: desarrollo del Paso 6 del plan (middleware `validate(schema)` con AJV 
   - Usuario 2 recibe `NotFoundError` (HTTP 404 "Tarea no encontrada") al intentar consultar, modificar o borrar tareas del Usuario 1.
   - Rechazo con `ValidationError` si se intenta actualizar el título a vacío/espacios o el estado a `null`.
 
+### Paso 12 · docs: add swagger documentation
+**Herramienta:** Antigravity.
+**Commit:** `af6c1c0`
+**Prompt:** "procedamos con el paso 12"
+**Contexto:** desarrollo del Paso 12 del plan (documentación interactiva OpenAPI 3.0 con Swagger UI en `/api-docs`, esquema de seguridad `bearerAuth`, esquemas de componentes y soporte multiplataforma para ejecución en desarrollo con `src` y producción con `dist`).
+**Acepté:**
+- Instalación de `swagger-ui-express` y `swagger-jsdoc` junto con sus definiciones de TypeScript (`@types/swagger-ui-express`, `@types/swagger-jsdoc`).
+- Creación de `src/config/swagger.ts` con especificación OpenAPI 3.0:
+  - Información general y servidor raíz.
+  - Esquema de seguridad `bearerAuth` (HTTP Bearer JWT) para permitir pruebas autenticadas mediante el botón "Authorize" de Swagger UI.
+  - Definición completa de esquemas de datos reutilizables (`RegisterDTO`, `LoginDTO`, `User`, `AuthResponse`, `CreateTaskDTO`, `UpdateTaskDTO`, `Task`, `ErrorResponse`).
+  - Patrón de búsqueda de archivos con normalización de barras invertidas (`replace(/\\/g, "/")`) para asegurar compatibilidad con el motor `glob` en Windows y soportar tanto `src/*.ts` como `dist/*.js`.
+- Anotaciones OpenAPI JSDoc en rutas:
+  - `src/api/routes/auth.routes.ts`: `POST /auth/register` (201, 400, 409) y `POST /auth/login` (200, 400, 401).
+  - `src/api/routes/task.routes.ts`: `POST /tasks` (201, 400, 401), `GET /tasks` (200, 401), `GET /tasks/:id` (200, 400, 401, 404), `PUT /tasks/:id` (200, 400, 401, 404), y `DELETE /tasks/:id` (200, 400, 401, 404).
+  - `src/app.ts`: `GET /health` (200).
+- Configuración en `src/app.ts`:
+  - Desactivación de `contentSecurityPolicy` en Helmet (`contentSecurityPolicy: false`) para evitar el bloqueo de scripts y estilos inline de Swagger UI.
+  - Montaje de Swagger UI en `/api-docs`.
+  - Exposición de la especificación cruda en `GET /api-docs.json`.
+**Cambié/rechacé:**
+- En Windows, `path.join` genera barras invertidas `\` que rompen el globbing interno de `swagger-jsdoc`, resultando en especificaciones sin rutas en producción. Se corrigió explícitamente normalizando las rutas con `.replace(/\\/g, "/")` y apuntando tanto a extensiones `.ts` como `.js`.
+- Helmet por defecto bloquea la carga de Swagger UI mediante CSP; se configuró Helmet para no restringir CSP en la UI interactiva mientras se preservan todas las demás cabeceras de protección.
+**Verifiqué:**
+- `npm run typecheck` → terminó sin errores.
+- `npm run build` (`tsc`) → compiló exitosamente a `dist/`.
+- Pruebas automatizadas de especificación:
+  - Verificación de esquema OpenAPI 3.0 y seguridad `bearerAuth`.
+  - Presencia de los 8 esquemas de componentes requeridos.
+  - Extracción exitosa de las 5 rutas (`/health`, `/auth/register`, `/auth/login`, `/tasks`, `/tasks/{id}`).
+  - Verificación idéntica sobre la versión compilada en `dist/config/swagger.js`.
+- Pruebas HTTP:
+  - `GET /api-docs.json` responde HTTP 200 OK con la especificación completa en formato JSON.
+  - `GET /api-docs/` responde HTTP 200 OK con el documento HTML interactivo de Swagger UI.
+
 ---
 
 ## Retos y soluciones
