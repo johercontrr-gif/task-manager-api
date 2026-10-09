@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { authService, AuthService } from "../services/auth.service";
-import { RegisterDTO } from "../schemas/auth.schema";
+import { LoginDTO, RegisterDTO } from "../schemas/auth.schema";
 
 /**
  * Controlador para los endpoints de autenticacion.
@@ -20,6 +20,20 @@ export class AuthController {
     res.status(201).json({
       status: "success",
       data: user,
+    });
+  };
+
+  /**
+   * POST /auth/login
+   * Recibe credenciales validadas, autentica al usuario y responde 200 OK con token y datos de usuario.
+   */
+  login = async (req: Request, res: Response): Promise<void> => {
+    const data: LoginDTO = req.body;
+    const authData = await this.authServ.login(data);
+
+    res.status(200).json({
+      status: "success",
+      data: authData,
     });
   };
 }
