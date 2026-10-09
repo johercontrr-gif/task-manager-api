@@ -347,3 +347,22 @@ curl -X DELETE http://localhost:3000/tasks/1 \
 6. **Validación de Esquemas con AJV**: Validación estricta con `additionalProperties: false` para bloquear la inyección de atributos no autorizados (Mass Assignment).
 7. **Cabeceras HTTP y Límites de Payload**: Configuración de cabeceras mediante `helmet` (con CSP estricto en los endpoints de datos y adaptado para la documentación interactiva Swagger UI) y límite del cuerpo de peticiones (`10kb`) en el parser JSON.
 8. **Limitación de Tasa (Rate Limiting)**: Control en memoria del proceso con `express-rate-limit` para las rutas `/auth/*` (por defecto 10 solicitudes por ventana de 15 minutos en desarrollo/producción).
+
+---
+
+## Despliegue en la Nube (Render)
+
+El proyecto incluye configuración de **Infrastructure as Code** lista para desplegar en [Render](https://render.com) mediante el archivo `render.yaml`.
+
+### Despliegue con Render Blueprint (Automático)
+1. Inicia sesión en [render.com](https://render.com).
+2. Ve a **Blueprints** $\rightarrow$ **New Blueprint Instance**.
+3. Conecta el repositorio `johercontrr-gif/task-manager-api`.
+4. Render detectará `render.yaml` y aprovisionará de forma coordinada:
+   - La base de datos PostgreSQL gestionada (`task-manager-db`).
+   - El servicio web Node.js (`task-manager-api`).
+   - El enlace de credenciales `DATABASE_URL` y la generación automática de un `JWT_SECRET` aleatorio seguro.
+   - La compilación del código TypeScript (`npm run build`) y la inicialización de tablas e índices (`node dist/persistence/init-db.js`).
+5. Haz clic en **Apply**.
+
+> **Nota sobre la capa gratuita de Render:** Los servicios gratuitos entran en estado de reposo tras 15 minutos de inactividad, por lo que la primera petición puede tardar entre 30 y 50 segundos mientras la instancia se reactiva.
