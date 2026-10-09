@@ -82,6 +82,23 @@ Contexto: desarrollo del Paso 3 del plan (clase `Config` Singleton con validaci�
 - Carga con `NODE_ENV=test` → cargó `.env.test` con puerto 3001, base `tasks_test_db` y salt 4.
 - `git ls-files` → solo `.env.example` y `.env.test.example` están bajo control de versiones.
 
+### Paso 4 · feat: add database connection pool and schema
+**Herramienta:** Antigravity.
+**Commit:** `baede2f`
+**Prompt:** "dale"
+Contexto: desarrollo del Paso 4 del plan (conexión a PostgreSQL con driver `pg`, parser de `DATE`, tipos y esquema SQL).
+**Acepté:**
+- Instalación de `pg` y `@types/pg` para interactuar con PostgreSQL mediante consultas SQL explícitas y parametrizadas (sin ORM).
+- Creación de `src/persistence/schema.sql` con tablas `users` y `tasks`, restricción `CHECK (estado IN ('pendiente', 'en curso', 'completada'))`, clave foránea con `ON DELETE CASCADE` e índice `idx_tasks_user_id`.
+- Definición de constante inmutable `TASK_ESTADOS as const` en `src/types/task.types.ts` como fuente única de verdad para tipos de TypeScript, validadores y base de datos.
+- Registro del type parser `types.setTypeParser(types.builtins.DATE, v => v)` en `src/persistence/db.ts` para evitar desfases de fecha por zona horaria.
+- Creación de `docker-compose.yml` montando `schema.sql` en `/docker-entrypoint-initdb.d` como alternativa a PostgreSQL local.
+**Cambié/rechacé:** Nada del código generado. Se cuidó que el valor del estado sea exactamente `'en curso'` (con espacio) coincidiendo con el enunciado.
+**Verifiqué:**
+- `npm ls pg --depth=0` → `pg@8.23.1`.
+- `npm run typecheck` → terminó sin errores.
+- Inicialización del Pool (`getPool()`) enlazando correctamente las variables de `Config`.
+
 ---
 
 ## Retos y soluciones
