@@ -1,8 +1,10 @@
+import express from "express";
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import request from "supertest";
 import app from "../../src/app";
 import { closePool } from "../../src/persistence/db";
 import { initializeTestDb, cleanDb } from "../helpers/db.helper";
+import { createAuthRateLimiter } from "../../src/api/middlewares/rate-limit.middleware";
 
 describe("Endpoints de Autenticacion (/auth)", () => {
   beforeAll(async () => {
@@ -36,7 +38,7 @@ describe("Endpoints de Autenticacion (/auth)", () => {
       expect(res.body.data).not.toHaveProperty("password");
     });
 
-    it("debe retornar 400 si falta el email o la contrasena es muy corta", async () => {
+    it("debe retornar 400 si falta el email o la contrasena no cumple limites (8 a 72)", async () => {
       const resSinEmail = await request(app)
         .post("/auth/register")
         .send({
@@ -46,15 +48,27 @@ describe("Endpoints de Autenticacion (/auth)", () => {
       expect(resSinEmail.status).toBe(400);
       expect(resSinEmail.body.status).toBe("error");
 
+      // Menor a 8 caracteres (ej. 7 caracteres)
       const resPassCorta = await request(app)
         .post("/auth/register")
         .send({
           nombre: "Pass Corta",
           email: "pass@example.com",
-          password: "123",
+          password: "1234567",
         });
       expect(resPassCorta.status).toBe(400);
       expect(resPassCorta.body.status).toBe("error");
+
+      // Mayor a 72 caracteres (limite util de bcrypt)
+      const resPassLarga = await request(app)
+        .post("/auth/register")
+        .send({
+          nombre: "Pass Larga",
+          email: "passlarga@example.com",
+          password: "a".repeat(73),
+        });
+      expect(resPassLarga.status).toBe(400);
+      expect(resPassLarga.body.status).toBe("error");
     });
 
     it("debe retornar 409 Conflict si el email ya esta registrado", async () => {
@@ -147,6 +161,35 @@ describe("Endpoints de Autenticacion (/auth)", () => {
       expect(res.status).toBe(200);
       expect(res.headers).toHaveProperty("ratelimit-limit");
       expect(res.headers).toHaveProperty("ratelimit-remaining");
+    });
+
+    it("debe bloquear con codigo 429 Too Many Requests y formato JSON consistente al sobrepasar el umbral", async () => {
+      const testLimiterApp = express();
+      testLimiterApp.use(express.json());
+      testLimiterApp.post(
+        "/test-rate-limit",
+        createAuthRateLimiter({ windowMs: 60000, max: 2 }),
+        (_req, res) => {
+          res.status(200).json({ status: "success", data: "ok" });
+        }
+      );
+
+      // Peticion 1: Permitida
+      const res1 = await request(testLimiterApp).post("/test-rate-limit");
+      expect(res1.status).toBe(200);
+
+      // Peticion 2: Permitida (limite alcanzado)
+      const res2 = await request(testLimiterApp).post("/test-rate-limit");
+      expect(res2.status).toBe(200);
+
+      // Peticion 3: Bloqueada con 429 Too Many Requests
+      const res3 = await request(testLimiterApp).post("/test-rate-limit");
+      expect(res3.status).toBe(429);
+      expect(res3.body).toEqual({
+        status: "error",
+        message: "Demasiadas solicitudes desde esta direccion IP, por favor intente nuevamente mas tarde",
+      });
+      expect(res3.headers["ratelimit-remaining"]).toBe("0");
     });
   });
 });
