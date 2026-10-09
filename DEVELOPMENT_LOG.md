@@ -99,6 +99,27 @@ Contexto: desarrollo del Paso 4 del plan (conexión a PostgreSQL con driver `pg`
 - `npm run typecheck` → terminó sin errores.
 - Inicialización del Pool (`getPool()`) enlazando correctamente las variables de `Config`.
 
+## Día 2
+
+### Paso 5 · feat: add custom error classes and global error handler
+**Herramienta:** Antigravity.
+**Commit:** `868fdad`
+**Prompt:** "Si arranquemos"
+Contexto: desarrollo del Paso 5 del plan (clases de error personalizadas y middleware global de errores).
+**Acepté:**
+- Jerarquía de errores tipados con clase base `AppError` (`statusCode`, `details?`, `isOperational = true`) y derivadas: `ValidationError` (400), `AuthenticationError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409).
+- Middleware global `errorHandler` en `src/api/middlewares/error.middleware.ts` con formato unificado `{ status: "error", message, details? }`.
+- Ocultamiento de stack traces en errores 500 para evitar fugas de información interna.
+- Manejo de JSON malformado (error de sintaxis de body-parser respondido con 400).
+- Middleware `notFoundHandler` para responder 404 en rutas inexistentes.
+- Instalación de `helmet` y límite `express.json({ limit: "10kb" })` en `src/app.ts` para seguridad transversal.
+**Cambié/rechacé:** Nada del código generado.
+**Verifiqué:**
+- `npm ls helmet --depth=0` → `helmet@8.3.0`.
+- `npm run typecheck` → terminó sin errores.
+- Prueba real `GET /ruta-inexistente` → 404 `{"status":"error","message":"Ruta no encontrada: GET /ruta-inexistente"}`.
+- Prueba real `POST /health` con JSON inválido → 400 `{"status":"error","message":"El cuerpo de la peticion contiene un JSON con formato invalido"}`.
+
 ---
 
 ## Retos y soluciones
